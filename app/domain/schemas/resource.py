@@ -10,7 +10,7 @@ class ResourceBase(BaseModel):
     url: str
     type: ResourceType
     description: str | None = None
-    duration_seconds: int | None = None
+    duration_minutes: int | None = None
 
 
 class ResourceCreate(ResourceBase):

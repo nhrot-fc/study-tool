@@ -20,8 +20,8 @@ from app.persistence.repository.user import UserRepository
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 settings = get_settings()
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/auth/login",
-    refreshUrl=f"{settings.API_V1_STR}/auth/refresh"
+    tokenUrl=f"{get_settings().API_V1_STR}/auth/access-token",
+    refreshUrl=f"{get_settings().API_V1_STR}/auth/refresh",
 )
 
 

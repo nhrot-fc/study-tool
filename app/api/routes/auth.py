@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 
 from app.core.dependencies import CurrentUser, get_auth_service, get_user_service
 from app.domain.schemas.auth import LoginRequest
@@ -33,6 +34,28 @@ async def login(
     service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> Token:
     user = await service.authenticate(form_data.email, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password",
+        )
+    elif not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
+        )
+    return await service.create_tokens(user)
+
+
+@router.post("/access-token", response_model=Token)
+async def login_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    service: Annotated[AuthService, Depends(get_auth_service)],
+) -> Token:
+    """
+    OAuth2 compatible token login, get an access token for future requests.
+    Uses username field as email.
+    """
+    user = await service.authenticate(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -137,3 +137,22 @@ async def test_register_existing_email(client: AsyncClient, user_service: UserSe
     )
     assert response.status_code == 400
     assert "already exists" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_login_access_token(client: AsyncClient, user_service: UserService):
+    user_in = UserCreate(
+        email="oauth_user@example.com", username="oauth_user", password="password123"
+    )
+    await user_service.create_user(user_in)
+
+    # Test OAuth2 form data login
+    response = await client.post(
+        "/api/v1/auth/access-token",
+        data={"username": "oauth_user@example.com", "password": "password123"},
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert data["token_type"] == "bearer"

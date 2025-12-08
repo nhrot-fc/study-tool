@@ -18,7 +18,7 @@ class Resource(BaseEntity, table=True):
     url: str
     type: ResourceType
     description: str | None = None
-    duration_seconds: int | None = None
+    duration_minutes: int | None = None
 
     study_plans: list["StudyPlan"] = Relationship(
         back_populates="resources", link_model=StudyPlanResourceLink

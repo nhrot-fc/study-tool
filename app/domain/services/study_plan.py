@@ -22,7 +22,7 @@ class StudyPlanService:
             url=resource_in.url,
             type=resource_in.type,
             description=resource_in.description,
-            duration_seconds=resource_in.duration_seconds,
+            duration_minutes=resource_in.duration_minutes,
         )
 
     def _create_section_entity(self, section_in: SectionCreate) -> Section:
@@ -91,7 +91,7 @@ class StudyPlanService:
             url=resource.url,
             type=resource.type,
             description=resource.description,
-            duration_seconds=resource.duration_seconds,
+            duration_minutes=resource.duration_minutes,
         )
 
     def _copy_section(self, section: Section) -> Section:

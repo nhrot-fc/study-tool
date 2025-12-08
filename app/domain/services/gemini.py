@@ -83,6 +83,12 @@ class GeminiService:
             Return a JSON object that strictly follows this JSON schema:
             {json.dumps(schema, indent=2)}
 
+            Instructions for filling fields:
+            - "notes": Provide brief study tips or key concepts to focus on
+                        for this section if necessary.
+            - "duration_minutes": Estimate the number of minutes to
+                        complete this resource.
+
             Ensure the output is valid JSON and matches the structure.
             """
 
