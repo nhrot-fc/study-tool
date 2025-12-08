@@ -102,3 +102,38 @@ async def test_get_me(client: AsyncClient, user_service: UserService):
     data = response.json()
     assert data["email"] == "me@example.com"
     assert data["username"] == "meuser"
+
+
+@pytest.mark.asyncio
+async def test_register(client: AsyncClient):
+    user_in = {
+        "email": "new_user@example.com",
+        "username": "new_user",
+        "password": "password123",
+    }
+    response = await client.post("/api/v1/auth/register", json=user_in)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["email"] == user_in["email"]
+    assert data["username"] == user_in["username"]
+    assert "id" in data
+    assert "hashed_password" not in data
+
+
+@pytest.mark.asyncio
+async def test_register_existing_email(client: AsyncClient, user_service: UserService):
+    user_in = UserCreate(
+        email="existing@example.com", username="existing", password="password123"
+    )
+    await user_service.create_user(user_in)
+
+    response = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "existing@example.com",
+            "username": "new_existing",
+            "password": "password123",
+        },
+    )
+    assert response.status_code == 400
+    assert "already exists" in response.json()["detail"]

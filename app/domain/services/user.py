@@ -18,7 +18,6 @@ class UserService:
             email=user_in.email,
             username=user_in.username,
             hashed_password=hashed_password,
-            is_active=user_in.is_active,
         )
         return await self.user_repository.create(user)
 

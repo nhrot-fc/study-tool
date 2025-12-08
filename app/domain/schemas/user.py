@@ -6,8 +6,6 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 class UserBase(BaseModel):
     email: EmailStr
     username: str
-    full_name: str | None = Field(default=None, max_length=255)
-    is_active: bool = True
 
 
 class UserCreate(UserBase):
@@ -23,4 +21,5 @@ class UserUpdate(BaseModel):
 
 class UserRead(UserBase):
     id: UUID
+    is_active: bool
     model_config = ConfigDict(from_attributes=True)
