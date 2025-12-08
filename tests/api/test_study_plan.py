@@ -180,3 +180,42 @@ async def test_list_user_study_plans_by_user_id(
     data = response.json()
     assert len(data) == 1
     assert data[0]["title"] == "Target Plan"
+
+@pytest.mark.asyncio
+async def test_create_study_plan_too_deep(client: AsyncClient, user_service: UserService):
+    # Create user and login
+    user_in = UserCreate(
+        email="deep_plan@example.com", username="deepplan", password="password123"
+    )
+    user_data = await user_service.create_user(user_in)
+
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "deep_plan@example.com", "password": "password123"},
+    )
+    token = login_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Create a 6-level nested structure
+    # Level 1
+    section = {"title": "L1", "children": []}
+    current = section
+    
+    # Add 5 more levels (total 6)
+    for i in range(2, 7):
+        child = {"title": f"L{i}", "children": []}
+        current["children"].append(child)
+        current = child
+
+    plan_data = {
+        "title": "Too Deep Plan",
+        "description": "A plan that is too deep",
+        "user_id": str(user_data.id),
+        "sections": [section],
+    }
+
+    response = await client.post(
+        "/api/v1/study-plans/", json=plan_data, headers=headers
+    )
+    assert response.status_code == 400
+    assert "Maximum section nesting depth of 5 exceeded" in response.json()["detail"]

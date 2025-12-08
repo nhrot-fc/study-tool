@@ -1,17 +1,60 @@
 from uuid import UUID
 
+from app.domain.schemas.resource import ResourceCreate
+from app.domain.schemas.section import SectionCreate
 from app.domain.schemas.study_plan import StudyPlanCreate
 from app.persistence.model.resource import Resource
 from app.persistence.model.section import Section
 from app.persistence.model.study_plan import StudyPlan
-from app.persistence.repository.study_plan import StudyPlanRepository
+from app.persistence.repository.study_plan import (
+    STUDY_PLAN_MAX_DEPTH,
+    StudyPlanRepository,
+)
 
 
 class StudyPlanService:
     def __init__(self, study_plan_repository: StudyPlanRepository):
         self.study_plan_repository = study_plan_repository
 
+    def _create_resource_entity(self, resource_in: ResourceCreate) -> Resource:
+        return Resource(
+            title=resource_in.title,
+            url=resource_in.url,
+            type=resource_in.type,
+            description=resource_in.description,
+            duration_seconds=resource_in.duration_seconds,
+        )
+
+    def _create_section_entity(self, section_in: SectionCreate) -> Section:
+        section = Section(
+            title=section_in.title,
+            description=section_in.description,
+            order=section_in.order,
+            notes=section_in.notes,
+        )
+
+        for res_in in section_in.resources:
+            section.resources.append(self._create_resource_entity(res_in))
+
+        for child_in in section_in.children:
+            section.children.append(self._create_section_entity(child_in))
+
+        return section
+
+    def _validate_depth(self, section: SectionCreate, current_depth: int = 1) -> None:
+        if current_depth > STUDY_PLAN_MAX_DEPTH:
+            raise ValueError(
+                f"Maximum section nesting depth of {STUDY_PLAN_MAX_DEPTH} exceeded"
+            )
+
+        for child in section.children:
+            self._validate_depth(child, current_depth + 1)
+
     async def create_study_plan(self, plan_in: StudyPlanCreate) -> StudyPlan:
+        # Validate depth
+        for sec_in in plan_in.sections:
+            self._validate_depth(sec_in)
+
         # Create the main plan
         study_plan = StudyPlan(
             title=plan_in.title,
@@ -21,59 +64,11 @@ class StudyPlanService:
 
         # Create resources for the plan
         for res_in in plan_in.resources:
-            resource = Resource(
-                title=res_in.title,
-                url=res_in.url,
-                type=res_in.type,
-                description=res_in.description,
-                duration_seconds=res_in.duration_seconds,
-            )
-            study_plan.resources.append(resource)
+            study_plan.resources.append(self._create_resource_entity(res_in))
 
         # Create sections (and their resources/children)
-        # Note: This is a simplified recursive creation.
-        # For very deep structures, consider an iterative approach or separate method.
         for sec_in in plan_in.sections:
-            section = Section(
-                title=sec_in.title,
-                description=sec_in.description,
-                order=sec_in.order,
-                notes=sec_in.notes,
-            )
-
-            # Section resources
-            for res_in in sec_in.resources:
-                resource = Resource(
-                    title=res_in.title,
-                    url=res_in.url,
-                    type=res_in.type,
-                    description=res_in.description,
-                    duration_seconds=res_in.duration_seconds,
-                )
-                section.resources.append(resource)
-
-            # Section children
-            for child_in in sec_in.children:
-                child_section = Section(
-                    title=child_in.title,
-                    description=child_in.description,
-                    order=child_in.order,
-                    notes=child_in.notes,
-                )
-                # Child resources
-                for res_in in child_in.resources:
-                    resource = Resource(
-                        title=res_in.title,
-                        url=res_in.url,
-                        type=res_in.type,
-                        description=res_in.description,
-                        duration_seconds=res_in.duration_seconds,
-                    )
-                    child_section.resources.append(resource)
-
-                section.children.append(child_section)
-
-            study_plan.sections.append(section)
+            study_plan.sections.append(self._create_section_entity(sec_in))
 
         created_plan = await self.study_plan_repository.create(study_plan)
         item = await self.study_plan_repository.get_with_details(created_plan.id)

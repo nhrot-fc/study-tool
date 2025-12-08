@@ -8,6 +8,8 @@ from app.persistence.model.section import Section
 from app.persistence.model.study_plan import StudyPlan
 from app.persistence.repository.base import BaseRepository
 
+STUDY_PLAN_MAX_DEPTH = 5
+
 
 class StudyPlanRepository(BaseRepository[StudyPlan]):
     def __init__(self, session: AsyncSession):
@@ -36,16 +38,18 @@ class StudyPlanRepository(BaseRepository[StudyPlan]):
         return list(items), total
 
     async def get_with_details(self, id: UUID) -> StudyPlan | None:
+        load_options = [selectinload(StudyPlan.resources)]  # type: ignore
+        path = selectinload(StudyPlan.sections)  # type: ignore
+        load_options.append(path.selectinload(Section.resources))  # type: ignore
+
+        for _ in range(STUDY_PLAN_MAX_DEPTH):
+            path = path.selectinload(Section.children)  # type: ignore
+            load_options.append(path.selectinload(Section.resources))  # type: ignore
+
         statement = (
             select(StudyPlan)
             .where(StudyPlan.id == id)  # type: ignore
-            .options(
-                selectinload(StudyPlan.resources),  # type: ignore
-                selectinload(StudyPlan.sections).selectinload(Section.resources),  # type: ignore
-                selectinload(StudyPlan.sections)  # type: ignore
-                .selectinload(Section.children)  # type: ignore
-                .selectinload(Section.resources),  # type: ignore
-            )
+            .options(*load_options)
         )
         result = await self.session.execute(statement)
         return result.scalars().first()

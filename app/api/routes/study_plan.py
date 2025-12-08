@@ -47,7 +47,13 @@ async def create_study_plan(
             detail="Cannot create study plan for another user",
         )
 
-    item = await service.create_study_plan(plan_in)
+    try:
+        item = await service.create_study_plan(plan_in)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from None
     return StudyPlanReadDetail.model_validate(item)
 
 
