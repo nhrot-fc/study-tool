@@ -9,20 +9,11 @@ router = APIRouter()
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
-async def health_check() -> Any:
-    """
-    Basic health check endpoint.
-    Returns 200 if the service is running.
-    """
-    return {"status": "ok"}
-
-
-@router.get("/detailed", status_code=status.HTTP_200_OK)
-async def detailed_health_check(
+async def health_check(
     session: SessionDep,
 ) -> Any:
     """
-    Detailed health check endpoint.
+    Health check endpoint.
     Checks database connectivity.
     """
     try:
