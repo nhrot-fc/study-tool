@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -57,7 +58,12 @@ async def get_current_user(
             detail="Could not validate credentials",
         ) from None
 
-    user = await user_service.user_repository.get_by_id(token_data.sub)
+    if token_data.sub is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
+        )
+    user = await user_service.user_repository.get_by_id(UUID(token_data.sub))
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

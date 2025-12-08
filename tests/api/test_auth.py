@@ -69,10 +69,15 @@ async def test_logout(client: AsyncClient, user_service: UserService):
         "/api/v1/auth/login",
         json={"email": "api_logout@example.com", "password": "password123"},
     )
-    refresh_token = login_response.json()["refresh_token"]
+    login_data = login_response.json()
+    assert login_response.status_code == 200
+    assert "refresh_token" in login_data
+    refresh_token = login_data["refresh_token"]
 
     response = await client.post(
         "/api/v1/auth/logout", json={"refresh_token": refresh_token}
     )
+    data = response.json()
     assert response.status_code == 200
-    assert response.json()["message"] == "Successfully logged out"
+    assert "message" in data
+    assert data["message"] == "Successfully logged out"

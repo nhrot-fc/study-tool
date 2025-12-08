@@ -1,0 +1,22 @@
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict
+
+from app.domain.enums import ResourceType
+
+
+class ResourceBase(BaseModel):
+    title: str
+    url: str
+    type: ResourceType
+    description: str | None = None
+    duration_seconds: int | None = None
+
+
+class ResourceCreate(ResourceBase):
+    pass
+
+
+class ResourceRead(ResourceBase):
+    id: UUID
+    model_config = ConfigDict(from_attributes=True)
