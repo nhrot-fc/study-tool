@@ -11,6 +11,7 @@ from app.core.config import get_settings
 from app.core.database import get_session
 from app.domain.schemas.token import TokenPayload
 from app.domain.services.auth import AuthService
+from app.domain.services.gemini import GeminiService
 from app.domain.services.user import UserService
 from app.persistence.model.user import User
 from app.persistence.repository.token import RefreshTokenRepository
@@ -73,3 +74,7 @@ async def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def get_gemini_service() -> GeminiService:
+    return GeminiService()

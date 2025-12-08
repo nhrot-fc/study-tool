@@ -12,10 +12,13 @@ class StudyPlanBase(BaseModel):
     description: str
 
 
-class StudyPlanCreate(StudyPlanBase):
-    user_id: UUID
+class StudyPlanProposal(StudyPlanBase):
     sections: list[SectionCreate] = []
     resources: list[ResourceCreate] = []
+
+
+class StudyPlanCreate(StudyPlanProposal):
+    user_id: UUID
 
 
 class StudyPlanRead(StudyPlanBase):
@@ -31,3 +34,9 @@ class StudyPlanRead(StudyPlanBase):
 class StudyPlanReadDetail(StudyPlanRead):
     sections: list[SectionRead] = []
     resources: list[ResourceRead] = []
+
+
+class StudyPlanGenerateRequest(BaseModel):
+    topic: str
+    level: str = "Beginner"
+    goals: str | None = None

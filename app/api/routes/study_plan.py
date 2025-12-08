@@ -4,12 +4,20 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import CurrentUser, get_session, get_user_service
+from app.core.dependencies import (
+    CurrentUser,
+    get_gemini_service,
+    get_session,
+    get_user_service,
+)
 from app.domain.schemas.study_plan import (
     StudyPlanCreate,
+    StudyPlanGenerateRequest,
+    StudyPlanProposal,
     StudyPlanRead,
     StudyPlanReadDetail,
 )
+from app.domain.services.gemini import GeminiService
 from app.domain.services.study_plan import StudyPlanService
 from app.domain.services.user import UserService
 from app.persistence.repository.study_plan import StudyPlanRepository
@@ -32,6 +40,7 @@ async def create_study_plan(
     current_user: CurrentUser,
     service: Annotated[StudyPlanService, Depends(get_study_plan_service)],
 ) -> StudyPlanReadDetail:
+    # Check that the user_id matches the current user
     if plan_in.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -40,6 +49,28 @@ async def create_study_plan(
 
     item = await service.create_study_plan(plan_in)
     return StudyPlanReadDetail.model_validate(item)
+
+
+@router.post("/generate", response_model=StudyPlanProposal)
+async def generate_study_plan(
+    request: StudyPlanGenerateRequest,
+    gemini_service: Annotated[GeminiService, Depends(get_gemini_service)],
+    current_user: CurrentUser,
+) -> StudyPlanProposal:
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Authentication required to generate study plans",
+        ) from None
+
+    proposal = gemini_service.generate_study_plan_proposal(
+        topic=request.topic, level=request.level, goals=request.goals
+    )
+
+    if not proposal:
+        raise HTTPException(status_code=500, detail="Failed to generate study plan")
+
+    return proposal
 
 
 @router.get("/{plan_id}", response_model=StudyPlanReadDetail)
