@@ -181,8 +181,11 @@ async def test_list_user_study_plans_by_user_id(
     assert len(data) == 1
     assert data[0]["title"] == "Target Plan"
 
+
 @pytest.mark.asyncio
-async def test_create_study_plan_too_deep(client: AsyncClient, user_service: UserService):
+async def test_create_study_plan_too_deep(
+    client: AsyncClient, user_service: UserService
+):
     # Create user and login
     user_in = UserCreate(
         email="deep_plan@example.com", username="deepplan", password="password123"
@@ -200,7 +203,7 @@ async def test_create_study_plan_too_deep(client: AsyncClient, user_service: Use
     # Level 1
     section = {"title": "L1", "children": []}
     current = section
-    
+
     # Add 5 more levels (total 6)
     for i in range(2, 7):
         child = {"title": f"L{i}", "children": []}

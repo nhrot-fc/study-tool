@@ -47,19 +47,44 @@ class GeminiService:
         return response.text
 
     def generate_study_plan_proposal(
-        self, topic: str, level: str, goals: str | None
+        self,
+        message: str,
+        level: str = "Beginner",
+        goals: str | None = None,
+        topic: str | None = None,
+        existing_proposal: StudyPlanProposal | None = None,
     ) -> StudyPlanProposal | None:
         schema = StudyPlanProposal.model_json_schema()
-        prompt = f"""
-        Generate a study plan for the topic: {topic}.
-        Level: {level}.
-        Goals: {goals or "General mastery"}.
 
-        Return a JSON object that strictly follows this JSON schema:
-        {json.dumps(schema, indent=2)}
+        if existing_proposal:
+            prompt = f"""
+            You are an expert study plan creator.
+            The user wants to modify an existing study plan.
 
-        Ensure the output is valid JSON and matches the structure.
-        """
+            Current Plan (JSON):
+            {existing_proposal.model_dump_json(indent=2)}
+
+            User Instruction: {message}
+
+            Update the study plan according to the user's instruction.
+            Keep the structure valid according to the schema.
+
+            Return a JSON object that strictly follows this JSON schema:
+            {json.dumps(schema, indent=2)}
+            """
+        else:
+            prompt = f"""
+            Generate a study plan.
+            Topic/Context: {topic or message}
+            User Instruction: {message}
+            Level: {level}.
+            Goals: {goals or "General mastery"}.
+
+            Return a JSON object that strictly follows this JSON schema:
+            {json.dumps(schema, indent=2)}
+
+            Ensure the output is valid JSON and matches the structure.
+            """
 
         response_text = self.generate_json(prompt)
         if not response_text:
