@@ -13,7 +13,7 @@ async def test_login(client: AsyncClient, user_service: UserService):
     await user_service.create_user(user_in)
 
     response = await client.post(
-        "/api/v1/login",
+        "/api/v1/auth/login",
         json={"email": "api_login@example.com", "password": "password123"},
     )
     assert response.status_code == 200
@@ -25,7 +25,7 @@ async def test_login(client: AsyncClient, user_service: UserService):
 @pytest.mark.asyncio
 async def test_login_invalid_credentials(client: AsyncClient):
     response = await client.post(
-        "/api/v1/login", json={"email": "wrong@example.com", "password": "wrong"}
+        "/api/v1/auth/login", json={"email": "wrong@example.com", "password": "wrong"}
     )
     assert response.status_code == 400
 
@@ -40,16 +40,19 @@ async def test_refresh_token(client: AsyncClient, user_service: UserService):
     await user_service.create_user(user_in)
 
     login_response = await client.post(
-        "/api/v1/login",
+        "/api/v1/auth/login",
         json={"email": "api_refresh@example.com", "password": "password123"},
     )
-    refresh_token = login_response.json()["refresh_token"]
+    login_data = login_response.json()
+    assert login_response.status_code == 200
+    assert "refresh_token" in login_data
+    refresh_token = login_data["refresh_token"]
 
     response = await client.post(
-        "/api/v1/refresh", json={"refresh_token": refresh_token}
+        "/api/v1/auth/refresh", json={"refresh_token": refresh_token}
     )
-    assert response.status_code == 200
     data = response.json()
+    assert response.status_code == 200
     assert "access_token" in data
     assert "refresh_token" in data
 
@@ -63,13 +66,13 @@ async def test_logout(client: AsyncClient, user_service: UserService):
     )
     await user_service.create_user(user_in)
     login_response = await client.post(
-        "/api/v1/login",
+        "/api/v1/auth/login",
         json={"email": "api_logout@example.com", "password": "password123"},
     )
     refresh_token = login_response.json()["refresh_token"]
 
     response = await client.post(
-        "/api/v1/logout", json={"refresh_token": refresh_token}
+        "/api/v1/auth/logout", json={"refresh_token": refresh_token}
     )
     assert response.status_code == 200
     assert response.json()["message"] == "Successfully logged out"
