@@ -12,13 +12,13 @@ class StudyPlanService:
         self.study_plan_repository = study_plan_repository
 
     async def create_study_plan(
-        self, plan_in: StudyPlanCreate, user_id: UUID
+        self, plan_in: StudyPlanCreate
     ) -> StudyPlan:
         # Create the main plan
         study_plan = StudyPlan(
             title=plan_in.title,
             description=plan_in.description,
-            user_id=user_id,
+            user_id=plan_in.user_id,
         )
 
         # Create resources for the plan
@@ -88,11 +88,9 @@ class StudyPlanService:
     ) -> tuple[list[StudyPlan], int]:
         return await self.study_plan_repository.get_by_user(user_id, skip, limit)
 
-    async def get_study_plan_by_id(self, id: UUID, user_id: UUID) -> StudyPlan | None:
+    async def get_study_plan_by_id(self, id: UUID) -> StudyPlan | None:
         plan = await self.study_plan_repository.get_with_details(id)
-        if plan and plan.user_id == user_id:
-            return plan
-        return None
+        return plan
 
     def _copy_resource(self, resource: Resource) -> Resource:
         return Resource(

@@ -11,7 +11,7 @@ async def test_create_study_plan(client: AsyncClient, user_service: UserService)
     user_in = UserCreate(
         email="plan_creator@example.com", username="plancreator", password="password123"
     )
-    await user_service.create_user(user_in)
+    user_data = await user_service.create_user(user_in)
 
     login_response = await client.post(
         "/api/v1/auth/login",
@@ -24,6 +24,7 @@ async def test_create_study_plan(client: AsyncClient, user_service: UserService)
     plan_data = {
         "title": "My Awesome Plan",
         "description": "Learning Python",
+        "user_id": str(user_data.id),
         "resources": [
             {
                 "title": "Python Docs",
@@ -59,7 +60,7 @@ async def test_list_study_plans(client: AsyncClient, user_service: UserService):
     user_in = UserCreate(
         email="plan_lister@example.com", username="planlister", password="password123"
     )
-    await user_service.create_user(user_in)
+    user_data = await user_service.create_user(user_in)
 
     login_response = await client.post(
         "/api/v1/auth/login",
@@ -69,7 +70,7 @@ async def test_list_study_plans(client: AsyncClient, user_service: UserService):
     headers = {"Authorization": f"Bearer {token}"}
 
     # Create a plan first
-    plan_data = {"title": "Plan 1", "description": "Desc 1"}
+    plan_data = {"title": "Plan 1", "description": "Desc 1", "user_id": str(user_data.id)}
     await client.post("/api/v1/study-plans/", json=plan_data, headers=headers)
 
     # List plans
@@ -86,7 +87,7 @@ async def test_get_study_plan_detail(client: AsyncClient, user_service: UserServ
     user_in = UserCreate(
         email="plan_viewer@example.com", username="planviewer", password="password123"
     )
-    await user_service.create_user(user_in)
+    user_data = await user_service.create_user(user_in)
 
     login_response = await client.post(
         "/api/v1/auth/login",
@@ -99,6 +100,7 @@ async def test_get_study_plan_detail(client: AsyncClient, user_service: UserServ
     plan_data = {
         "title": "Detailed Plan",
         "description": "Desc",
+        "user_id": str(user_data.id),
         "sections": [{"title": "S1"}],
     }
     create_res = await client.post(
@@ -118,7 +120,7 @@ async def test_get_study_plan_detail(client: AsyncClient, user_service: UserServ
 async def test_fork_study_plan(client: AsyncClient, user_service: UserService):
     # User 1 creates a plan
     user1_in = UserCreate(email="u1@example.com", username="u1", password="password123")
-    await user_service.create_user(user1_in)
+    user1_data = await user_service.create_user(user1_in)
     login1 = await client.post(
         "/api/v1/auth/login",
         json={"email": "u1@example.com", "password": "password123"},
@@ -129,6 +131,7 @@ async def test_fork_study_plan(client: AsyncClient, user_service: UserService):
     plan_data = {
         "title": "Original",
         "description": "Desc",
+        "user_id": str(user1_data.id),
         "sections": [{"title": "S1"}],
     }
     create_res = await client.post(
@@ -160,7 +163,7 @@ async def test_fork_study_plan(client: AsyncClient, user_service: UserService):
 
 
 @pytest.mark.asyncio
-async def test_list_user_study_plans_by_username(
+async def test_list_user_study_plans_by_user_id(
     client: AsyncClient, user_service: UserService
 ):
     # User 1 creates a plan
@@ -177,7 +180,7 @@ async def test_list_user_study_plans_by_username(
 
     await client.post(
         "/api/v1/study-plans/",
-        json={"title": "Target Plan", "description": "Desc"},
+        json={"title": "Target Plan", "description": "Desc", "user_id": str(user_data.id)},
         headers=headers1,
     )
 

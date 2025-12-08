@@ -32,7 +32,13 @@ async def create_study_plan(
     current_user: CurrentUser,
     service: Annotated[StudyPlanService, Depends(get_study_plan_service)],
 ) -> StudyPlanReadDetail:
-    item = await service.create_study_plan(plan_in, current_user.id)
+    if plan_in.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot create study plan for another user",
+        )
+
+    item = await service.create_study_plan(plan_in)
     return StudyPlanReadDetail.model_validate(item)
 
 
@@ -50,10 +56,9 @@ async def list_study_plans(
 @router.get("/{plan_id}", response_model=StudyPlanReadDetail)
 async def get_study_plan(
     plan_id: UUID,
-    current_user: CurrentUser,
     service: Annotated[StudyPlanService, Depends(get_study_plan_service)],
 ) -> StudyPlanReadDetail:
-    plan = await service.get_study_plan_by_id(plan_id, current_user.id)
+    plan = await service.get_study_plan_by_id(plan_id)
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Study plan not found"

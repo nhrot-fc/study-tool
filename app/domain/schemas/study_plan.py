@@ -13,6 +13,7 @@ class StudyPlanBase(BaseModel):
 
 
 class StudyPlanCreate(StudyPlanBase):
+    user_id: UUID
     sections: list[SectionCreate] = []
     resources: list[ResourceCreate] = []
 

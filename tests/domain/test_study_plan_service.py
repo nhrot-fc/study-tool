@@ -21,8 +21,10 @@ async def user(user_service: UserService):
 
 @pytest.mark.asyncio
 async def test_create_study_plan_simple(study_plan_service: StudyPlanService, user):
-    plan_in = StudyPlanCreate(title="Simple Plan", description="A simple plan")
-    plan = await study_plan_service.create_study_plan(plan_in, user.id)
+    plan_in = StudyPlanCreate(
+        title="Simple Plan", description="A simple plan", user_id=user.id
+    )
+    plan = await study_plan_service.create_study_plan(plan_in)
 
     assert plan.id is not None
     assert plan.title == "Simple Plan"
@@ -36,6 +38,7 @@ async def test_create_study_plan_nested(study_plan_service: StudyPlanService, us
     plan_in = StudyPlanCreate(
         title="Nested Plan",
         description="A nested plan",
+        user_id=user.id,
         resources=[
             ResourceCreate(title="R1", url="http://r1.com", type=ResourceType.ARTICLE)
         ],
@@ -62,7 +65,7 @@ async def test_create_study_plan_nested(study_plan_service: StudyPlanService, us
             )
         ],
     )
-    plan = await study_plan_service.create_study_plan(plan_in, user.id)
+    plan = await study_plan_service.create_study_plan(plan_in)
 
     assert plan.title == "Nested Plan"
     assert len(plan.resources) == 1
@@ -86,7 +89,7 @@ async def test_get_user_study_plans(study_plan_service: StudyPlanService, user):
     # Create 3 plans
     for i in range(3):
         await study_plan_service.create_study_plan(
-            StudyPlanCreate(title=f"Plan {i}", description="desc"), user.id
+            StudyPlanCreate(title=f"Plan {i}", description="desc", user_id=user.id)
         )
 
     plans, total = await study_plan_service.get_user_study_plans(user.id)
@@ -98,10 +101,10 @@ async def test_get_user_study_plans(study_plan_service: StudyPlanService, user):
 @pytest.mark.asyncio
 async def test_get_study_plan_by_id_success(study_plan_service: StudyPlanService, user):
     created = await study_plan_service.create_study_plan(
-        StudyPlanCreate(title="Target", description="desc"), user.id
+        StudyPlanCreate(title="Target", description="desc", user_id=user.id)
     )
 
-    fetched = await study_plan_service.get_study_plan_by_id(created.id, user.id)
+    fetched = await study_plan_service.get_study_plan_by_id(created.id)
     assert fetched is not None
     assert fetched.id == created.id
     assert fetched.title == "Target"
@@ -109,26 +112,7 @@ async def test_get_study_plan_by_id_success(study_plan_service: StudyPlanService
 
 @pytest.mark.asyncio
 async def test_get_study_plan_by_id_not_found(
-    study_plan_service: StudyPlanService, user
+    study_plan_service: StudyPlanService,
 ):
-    fetched = await study_plan_service.get_study_plan_by_id(uuid4(), user.id)
-    assert fetched is None
-
-
-@pytest.mark.asyncio
-async def test_get_study_plan_by_id_wrong_user(
-    study_plan_service: StudyPlanService, user, user_service
-):
-    # Create another user
-    other_user = await user_service.create_user(
-        UserCreate(email="other@example.com", username="other", password="password")
-    )
-
-    # Create plan for first user
-    plan = await study_plan_service.create_study_plan(
-        StudyPlanCreate(title="User 1 Plan", description="desc"), user.id
-    )
-
-    # Try to fetch with other user
-    fetched = await study_plan_service.get_study_plan_by_id(plan.id, other_user.id)
+    fetched = await study_plan_service.get_study_plan_by_id(uuid4())
     assert fetched is None

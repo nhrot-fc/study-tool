@@ -32,5 +32,5 @@ class UserService:
         self, search_username: str, skip: int = 0, limit: int = 100
     ) -> tuple[list[User], int]:
         return await self.user_repository.get(
-            (col(User.username).ilike(f"%{search_username}%"),), skip=skip, limit=limit
+            col(User.username).ilike(f"%{search_username}%"), skip=skip, limit=limit
         )

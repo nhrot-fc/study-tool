@@ -13,3 +13,8 @@ class UserRepository(BaseRepository[User]):
         statement = select(User).where(User.email == email)  # type: ignore
         result = await self.session.execute(statement)
         return result.scalars().first()
+
+    async def get_by_username(self, username: str) -> User | None:
+        statement = select(User).where(User.username == username)
+        result = await self.session.execute(statement)
+        return result.scalars().first()
