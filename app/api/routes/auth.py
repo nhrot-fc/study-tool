@@ -1,0 +1,56 @@
+from typing import Annotated
+
+from fastapi import APIRouter, Body, Depends, HTTPException, status
+
+from app.core.dependencies import get_auth_service
+from app.domain.schemas.auth import LoginRequest
+from app.domain.schemas.token import Token
+from app.domain.services.auth import AuthService
+
+router = APIRouter()
+
+
+@router.post("/login", response_model=Token)
+async def login(
+    form_data: Annotated[LoginRequest, Body()],
+    service: Annotated[AuthService, Depends(get_auth_service)],
+) -> Token:
+    user = await service.authenticate(form_data.email, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password",
+        )
+    elif not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
+        )
+    return await service.create_tokens(user)
+
+
+@router.post("/refresh", response_model=Token)
+async def refresh_token(
+    refresh_token: Annotated[str, Body(embed=True)],
+    service: Annotated[AuthService, Depends(get_auth_service)],
+) -> Token:
+    token = await service.refresh_access_token(refresh_token)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+    return token
+
+
+@router.post("/logout")
+async def logout(
+    refresh_token: Annotated[str, Body(embed=True)],
+    service: Annotated[AuthService, Depends(get_auth_service)],
+) -> dict[str, str]:
+    success = await service.logout(refresh_token)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid refresh token",
+        )
+    return {"message": "Successfully logged out"}
