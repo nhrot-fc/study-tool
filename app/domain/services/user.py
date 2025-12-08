@@ -29,8 +29,14 @@ class UserService:
         return await self.user_repository.get_by_id(user_id)
 
     async def fetch(
-        self, search_username: str, skip: int = 0, limit: int = 100
+        self, search_username: str | None = None, skip: int = 0, limit: int = 100
     ) -> tuple[list[User], int]:
+        filters = []
+        if search_username:
+            filters.append(col(User.username).ilike(f"%{search_username}%"))
+
         return await self.user_repository.get(
-            col(User.username).ilike(f"%{search_username}%"), skip=skip, limit=limit
+            *filters,
+            skip=skip,
+            limit=limit,
         )

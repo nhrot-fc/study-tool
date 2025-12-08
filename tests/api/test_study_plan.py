@@ -55,33 +55,6 @@ async def test_create_study_plan(client: AsyncClient, user_service: UserService)
 
 
 @pytest.mark.asyncio
-async def test_list_study_plans(client: AsyncClient, user_service: UserService):
-    # Create user and login
-    user_in = UserCreate(
-        email="plan_lister@example.com", username="planlister", password="password123"
-    )
-    user_data = await user_service.create_user(user_in)
-
-    login_response = await client.post(
-        "/api/v1/auth/login",
-        json={"email": "plan_lister@example.com", "password": "password123"},
-    )
-    token = login_response.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    # Create a plan first
-    plan_data = {"title": "Plan 1", "description": "Desc 1", "user_id": str(user_data.id)}
-    await client.post("/api/v1/study-plans/", json=plan_data, headers=headers)
-
-    # List plans
-    response = await client.get("/api/v1/study-plans/", headers=headers)
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 1
-    assert data[0]["title"] == "Plan 1"
-
-
-@pytest.mark.asyncio
 async def test_get_study_plan_detail(client: AsyncClient, user_service: UserService):
     # Create user and login
     user_in = UserCreate(
@@ -180,7 +153,11 @@ async def test_list_user_study_plans_by_user_id(
 
     await client.post(
         "/api/v1/study-plans/",
-        json={"title": "Target Plan", "description": "Desc", "user_id": str(user_data.id)},
+        json={
+            "title": "Target Plan",
+            "description": "Desc",
+            "user_id": str(user_data.id),
+        },
         headers=headers1,
     )
 

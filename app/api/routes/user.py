@@ -12,7 +12,7 @@ router = APIRouter()
 @router.get("/", response_model=list[UserRead])
 async def search_users(
     service: Annotated[UserService, Depends(get_user_service)],
-    username: str = Query(..., min_length=3),
+    username: str | None = Query(None, min_length=3),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
 ) -> list[UserRead]:

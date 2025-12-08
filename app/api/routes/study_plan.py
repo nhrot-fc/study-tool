@@ -42,17 +42,6 @@ async def create_study_plan(
     return StudyPlanReadDetail.model_validate(item)
 
 
-@router.get("/", response_model=list[StudyPlanRead])
-async def list_study_plans(
-    current_user: CurrentUser,
-    service: Annotated[StudyPlanService, Depends(get_study_plan_service)],
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=100),
-) -> list[StudyPlanRead]:
-    items, _ = await service.get_user_study_plans(current_user.id, skip, limit)
-    return [StudyPlanRead.model_validate(item) for item in items]
-
-
 @router.get("/{plan_id}", response_model=StudyPlanReadDetail)
 async def get_study_plan(
     plan_id: UUID,
@@ -85,7 +74,7 @@ async def fork_study_plan(
 
 
 @router.get("/user/{user_id}", response_model=list[StudyPlanRead])
-async def list_user_study_plans_by_username(
+async def list_user_study_plans(
     user_id: UUID,
     service: Annotated[StudyPlanService, Depends(get_study_plan_service)],
     user_service: Annotated[UserService, Depends(get_user_service)],

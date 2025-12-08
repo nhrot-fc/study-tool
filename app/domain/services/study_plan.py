@@ -11,9 +11,7 @@ class StudyPlanService:
     def __init__(self, study_plan_repository: StudyPlanRepository):
         self.study_plan_repository = study_plan_repository
 
-    async def create_study_plan(
-        self, plan_in: StudyPlanCreate
-    ) -> StudyPlan:
+    async def create_study_plan(self, plan_in: StudyPlanCreate) -> StudyPlan:
         # Create the main plan
         study_plan = StudyPlan(
             title=plan_in.title,
