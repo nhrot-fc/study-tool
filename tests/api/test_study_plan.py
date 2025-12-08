@@ -112,3 +112,91 @@ async def test_get_study_plan_detail(client: AsyncClient, user_service: UserServ
     data = response.json()
     assert data["title"] == "Detailed Plan"
     assert len(data["sections"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_fork_study_plan(client: AsyncClient, user_service: UserService):
+    # User 1 creates a plan
+    user1_in = UserCreate(email="u1@example.com", username="u1", password="password123")
+    await user_service.create_user(user1_in)
+    login1 = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "u1@example.com", "password": "password123"},
+    )
+    token1 = login1.json()["access_token"]
+    headers1 = {"Authorization": f"Bearer {token1}"}
+
+    plan_data = {
+        "title": "Original",
+        "description": "Desc",
+        "sections": [{"title": "S1"}],
+    }
+    create_res = await client.post(
+        "/api/v1/study-plans/", json=plan_data, headers=headers1
+    )
+    plan_id = create_res.json()["id"]
+
+    # User 2 forks the plan
+    user2_in = UserCreate(email="u2@example.com", username="u2", password="password123")
+    await user_service.create_user(user2_in)
+    login2 = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "u2@example.com", "password": "password123"},
+    )
+    token2 = login2.json()["access_token"]
+    headers2 = {"Authorization": f"Bearer {token2}"}
+
+    fork_res = await client.post(
+        f"/api/v1/study-plans/{plan_id}/fork", headers=headers2
+    )
+    assert fork_res.status_code == 201
+    fork_data = fork_res.json()
+    assert fork_data["title"] == "Copy of Original"
+    assert fork_data["description"] == "Desc"
+    assert len(fork_data["sections"]) == 1
+    assert fork_data["sections"][0]["title"] == "S1"
+    assert fork_data["id"] != plan_id
+    assert fork_data["forked_from_id"] == plan_id
+
+
+@pytest.mark.asyncio
+async def test_list_user_study_plans_by_username(
+    client: AsyncClient, user_service: UserService
+):
+    # User 1 creates a plan
+    user1_in = UserCreate(
+        email="target@example.com", username="targetuser", password="password123"
+    )
+    user_data = await user_service.create_user(user1_in)
+    login1 = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "target@example.com", "password": "password123"},
+    )
+    token1 = login1.json()["access_token"]
+    headers1 = {"Authorization": f"Bearer {token1}"}
+
+    await client.post(
+        "/api/v1/study-plans/",
+        json={"title": "Target Plan", "description": "Desc"},
+        headers=headers1,
+    )
+
+    # User 2 views User 1's plans
+    user2_in = UserCreate(
+        email="viewer@example.com", username="viewer", password="password123"
+    )
+    await user_service.create_user(user2_in)
+    login2 = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "viewer@example.com", "password": "password123"},
+    )
+    token2 = login2.json()["access_token"]
+    headers2 = {"Authorization": f"Bearer {token2}"}
+
+    response = await client.get(
+        f"/api/v1/study-plans/user/{user_data.id}", headers=headers2
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["title"] == "Target Plan"

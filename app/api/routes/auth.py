@@ -2,9 +2,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 
-from app.core.dependencies import get_auth_service
+from app.core.dependencies import CurrentUser, get_auth_service
 from app.domain.schemas.auth import LoginRequest
 from app.domain.schemas.token import Token
+from app.domain.schemas.user import UserRead
 from app.domain.services.auth import AuthService
 
 router = APIRouter()
@@ -54,3 +55,8 @@ async def logout(
             detail="Invalid refresh token",
         )
     return {"message": "Successfully logged out"}
+
+
+@router.get("/me", response_model=UserRead)
+async def read_users_me(current_user: CurrentUser) -> UserRead:
+    return UserRead.model_validate(current_user)

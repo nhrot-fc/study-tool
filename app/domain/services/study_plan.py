@@ -93,3 +93,55 @@ class StudyPlanService:
         if plan and plan.user_id == user_id:
             return plan
         return None
+
+    def _copy_resource(self, resource: Resource) -> Resource:
+        return Resource(
+            title=resource.title,
+            url=resource.url,
+            type=resource.type,
+            description=resource.description,
+            duration_seconds=resource.duration_seconds,
+        )
+
+    def _copy_section(self, section: Section) -> Section:
+        new_section = Section(
+            title=section.title,
+            description=section.description,
+            order=section.order,
+            notes=section.notes,
+        )
+        for res in section.resources:
+            new_section.resources.append(self._copy_resource(res))
+
+        for child in section.children:
+            new_section.children.append(self._copy_section(child))
+
+        return new_section
+
+    async def fork_study_plan(
+        self, original_plan_id: UUID, user_id: UUID
+    ) -> StudyPlan | None:
+        original_plan = await self.study_plan_repository.get_with_details(
+            original_plan_id
+        )
+        if not original_plan:
+            return None
+
+        new_plan = StudyPlan(
+            title=f"Copy of {original_plan.title}",
+            description=original_plan.description,
+            user_id=user_id,
+            forked_from_id=original_plan.id,
+        )
+
+        for res in original_plan.resources:
+            new_plan.resources.append(self._copy_resource(res))
+
+        for sec in original_plan.sections:
+            new_plan.sections.append(self._copy_section(sec))
+
+        created_plan = await self.study_plan_repository.create(new_plan)
+        item = await self.study_plan_repository.get_with_details(created_plan.id)
+        if item is None:
+            raise Exception("Failed to retrieve created study plan")
+        return item

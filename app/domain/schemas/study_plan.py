@@ -21,6 +21,7 @@ class StudyPlanRead(StudyPlanBase):
     id: UUID
     created_at: datetime
     updated_at: datetime
+    forked_from_id: UUID | None = None
     # Metadata only, no sections/resources
 
     model_config = ConfigDict(from_attributes=True)

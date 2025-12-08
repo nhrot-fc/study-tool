@@ -81,3 +81,24 @@ async def test_logout(client: AsyncClient, user_service: UserService):
     assert response.status_code == 200
     assert "message" in data
     assert data["message"] == "Successfully logged out"
+
+
+@pytest.mark.asyncio
+async def test_get_me(client: AsyncClient, user_service: UserService):
+    user_in = UserCreate(
+        email="me@example.com", username="meuser", password="password123"
+    )
+    await user_service.create_user(user_in)
+
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "me@example.com", "password": "password123"},
+    )
+    token = login_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = await client.get("/api/v1/auth/me", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["email"] == "me@example.com"
+    assert data["username"] == "meuser"

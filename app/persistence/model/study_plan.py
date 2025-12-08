@@ -21,6 +21,11 @@ class StudyPlan(BaseEntity, table=True):
     user_id: UUID = Field(foreign_key="user.id")
     user: "User" = Relationship(back_populates="study_plans")
 
+    forked_from_id: UUID | None = Field(default=None, foreign_key="study_plan.id")
+    forked_from: "StudyPlan" = Relationship(
+        sa_relationship_kwargs={"remote_side": "StudyPlan.id"}
+    )
+
     sections: list["Section"] = Relationship(back_populates="study_plan")
     resources: list["Resource"] = Relationship(
         back_populates="study_plans", link_model=StudyPlanResourceLink
