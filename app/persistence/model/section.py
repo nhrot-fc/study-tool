@@ -22,7 +22,6 @@ class Section(BaseEntity, table=True):
     status: CompletionStatus = Field(default=CompletionStatus.NOT_STARTED)
     progress: float = Field(default=0.0)
     completed_at: datetime | None = None
-    notes: str | None = None
     # Foreign Keys
     study_plan_id: UUID | None = Field(default=None, foreign_key="study_plan.id")
     parent_id: UUID | None = Field(default=None, foreign_key="section.id")

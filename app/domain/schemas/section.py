@@ -10,7 +10,6 @@ class SectionBase(BaseModel):
     title: str
     description: str | None = None
     order: int = 0
-    notes: str | None = None
 
 
 class SectionCreate(SectionBase):
@@ -33,4 +32,3 @@ class SectionUpdate(BaseModel):
     description: str | None = None
     order: int | None = None
     status: CompletionStatus | None = None
-    notes: str | None = None
