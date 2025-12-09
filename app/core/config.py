@@ -5,6 +5,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    # Bussiness Logic
+    STUDY_PLAN_MAX_DEPTH: int = 5
+
     # Application
     APP_NAME: str = "Study Tool API"
     API_V1_STR: str = "/api/v1"

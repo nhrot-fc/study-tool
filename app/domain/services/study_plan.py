@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from app.core.config import get_settings
 from app.domain.schemas.resource import ResourceCreate
 from app.domain.schemas.section import SectionCreate
 from app.domain.schemas.study_plan import StudyPlanCreate
@@ -7,7 +8,6 @@ from app.persistence.model.resource import Resource
 from app.persistence.model.section import Section
 from app.persistence.model.study_plan import StudyPlan
 from app.persistence.repository.study_plan import (
-    STUDY_PLAN_MAX_DEPTH,
     StudyPlanRepository,
 )
 
@@ -41,10 +41,9 @@ class StudyPlanService:
         return section
 
     def _validate_depth(self, section: SectionCreate, current_depth: int = 1) -> None:
-        if current_depth > STUDY_PLAN_MAX_DEPTH:
-            raise ValueError(
-                f"Maximum section nesting depth of {STUDY_PLAN_MAX_DEPTH} exceeded"
-            )
+        max_depth = get_settings().STUDY_PLAN_MAX_DEPTH
+        if current_depth > max_depth:
+            raise ValueError(f"Maximum section nesting depth of {max_depth} exceeded")
 
         for child in section.children:
             self._validate_depth(child, current_depth + 1)

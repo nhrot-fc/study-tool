@@ -53,38 +53,52 @@ class GeminiService:
         existing_proposal: StudyPlanProposal | None = None,
     ) -> StudyPlanProposal | None:
         schema = StudyPlanProposal.model_json_schema()
+        settings = get_settings()
+        max_depth = settings.STUDY_PLAN_MAX_DEPTH
+
+        system_instruction = """
+        You are an expert study plan creator.
+        Your goal is to create comprehensive and structured learning paths.
+        """
 
         if existing_proposal:
-            prompt = f"""
-            You are an expert study plan creator.
+            task_instruction = f"""
+            ## Task
             The user wants to modify an existing study plan.
+            Update the plan according to the instructions.
 
-            Current Plan (JSON):
-            {existing_proposal.model_dump_json(indent=2)}
-            Topic/Context: {topic or message}
+            ## Context
+            Topic: {topic or message}
             User Instruction: {message}
 
-            Update the study plan according to the user's instruction.
-            Keep the structure valid according to the schema.
-
-            Return a JSON object that strictly follows this JSON schema:
-            {json.dumps(schema, indent=2)}
+            ## Current Plan
+            {existing_proposal.model_dump_json(indent=2)}
             """
         else:
-            prompt = f"""
-            Generate a study plan.
-            Topic/Context: {topic or message}
+            task_instruction = f"""
+            ## Task
+            Generate a new study plan based on the topic and instructions.
+
+            ## Context
+            Topic: {topic or message}
             User Instruction: {message}
-
-            Return a JSON object that strictly follows this JSON schema:
-            {json.dumps(schema, indent=2)}
-
-            Instructions for filling fields:
-            - "duration_minutes": Estimate the number of minutes to
-                        complete this resource.
-
-            Ensure the output is valid JSON and matches the structure.
             """
+
+        constraints = f"""
+        ## Constraints
+        1. **Output Format**:
+            Return a single valid JSON object that strictly follows the provided schema.
+        2. **Recursive Structure**:
+            Sections can be nested. You may create subsections (children)
+            up to a maximum depth of {max_depth} to organize the content logically.
+        3. **Content**: Break down the topic into manageable sections.
+        4. **Estimations**: Fill "duration_minutes" with realistic time estimates.
+
+        ## JSON Schema
+        {json.dumps(schema, indent=2)}
+        """
+
+        prompt = f"{system_instruction}\n\n{task_instruction}\n\n{constraints}"
 
         response_text = self.generate_json(prompt)
         if not response_text:

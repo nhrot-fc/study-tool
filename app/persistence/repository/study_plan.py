@@ -3,12 +3,12 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlmodel import col
 
+from app.core.config import get_settings
 from app.persistence.model.section import Section
 from app.persistence.model.study_plan import StudyPlan
 from app.persistence.repository.base import BaseRepository
-
-STUDY_PLAN_MAX_DEPTH = 5
 
 
 class StudyPlanRepository(BaseRepository[StudyPlan]):
@@ -20,7 +20,7 @@ class StudyPlanRepository(BaseRepository[StudyPlan]):
     ) -> tuple[list[StudyPlan], int]:
         statement = (
             select(StudyPlan)
-            .where(StudyPlan.user_id == user_id)  # type: ignore
+            .where(col(StudyPlan.user_id) == user_id)
             .offset(skip)
             .limit(limit)
         )
@@ -30,7 +30,7 @@ class StudyPlanRepository(BaseRepository[StudyPlan]):
         count_statement = (
             select(func.count())
             .select_from(StudyPlan)
-            .where(StudyPlan.user_id == user_id)  # type: ignore
+            .where(col(StudyPlan.user_id) == user_id)
         )
         count_result = await self.session.execute(count_statement)
         total = count_result.scalar_one()
@@ -40,16 +40,20 @@ class StudyPlanRepository(BaseRepository[StudyPlan]):
     async def get_with_details(self, id: UUID) -> StudyPlan | None:
         load_options = [selectinload(StudyPlan.resources)]  # type: ignore
         path = selectinload(StudyPlan.sections)  # type: ignore
+        load_options.append(path)
+
+        # Load resources for top-level sections
         load_options.append(path.selectinload(Section.resources))  # type: ignore
 
-        for _ in range(STUDY_PLAN_MAX_DEPTH):
-            path = path.selectinload(Section.children)  # type: ignore
-            load_options.append(path.selectinload(Section.resources))  # type: ignore
+        # Recursively load children and their resources
+        current_path = path
+        for _ in range(get_settings().STUDY_PLAN_MAX_DEPTH):
+            current_path = current_path.selectinload(Section.children)  # type: ignore
+            load_options.append(current_path)
+            load_options.append(current_path.selectinload(Section.resources))  # type: ignore
 
         statement = (
-            select(StudyPlan)
-            .where(StudyPlan.id == id)  # type: ignore
-            .options(*load_options)
+            select(StudyPlan).where(col(StudyPlan.id) == id).options(*load_options)
         )
         result = await self.session.execute(statement)
         return result.scalars().first()
