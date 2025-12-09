@@ -7,6 +7,7 @@ from app.persistence.model.base import BaseEntity
 from app.persistence.model.links import SectionResourceLink, StudyPlanResourceLink
 
 if TYPE_CHECKING:
+    from app.persistence.model.progress import ResourceProgress
     from app.persistence.model.section import Section
     from app.persistence.model.study_plan import StudyPlan
 
@@ -26,3 +27,5 @@ class Resource(BaseEntity, table=True):
     sections: list["Section"] = Relationship(
         back_populates="resources", link_model=SectionResourceLink
     )
+
+    progresses: list["ResourceProgress"] = Relationship(back_populates="resource")

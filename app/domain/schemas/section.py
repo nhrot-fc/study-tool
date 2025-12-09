@@ -2,7 +2,6 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from app.domain.enums import CompletionStatus
 from app.domain.schemas.resource import ResourceCreate, ResourceRead
 
 
@@ -19,8 +18,6 @@ class SectionCreate(SectionBase):
 
 class SectionRead(SectionBase):
     id: UUID
-    status: CompletionStatus
-    progress: float
     resources: list[ResourceRead] = []
     children: list["SectionRead"] = []
 
@@ -31,4 +28,3 @@ class SectionUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
     order: int | None = None
-    status: CompletionStatus | None = None

@@ -6,6 +6,11 @@ from sqlmodel import Field, Relationship
 from app.persistence.model.base import BaseEntity
 
 if TYPE_CHECKING:
+    from app.persistence.model.progress import (
+        ResourceProgress,
+        SectionProgress,
+        StudyPlanProgress,
+    )
     from app.persistence.model.study_plan import StudyPlan
     from app.persistence.model.token import RefreshToken
 
@@ -20,3 +25,9 @@ class User(BaseEntity, table=True):
 
     refresh_tokens: list["RefreshToken"] = Relationship(back_populates="user")
     study_plans: list["StudyPlan"] = Relationship(back_populates="user")
+
+    study_plan_progresses: list["StudyPlanProgress"] = Relationship(
+        back_populates="user"
+    )
+    section_progresses: list["SectionProgress"] = Relationship(back_populates="user")
+    resource_progresses: list["ResourceProgress"] = Relationship(back_populates="user")

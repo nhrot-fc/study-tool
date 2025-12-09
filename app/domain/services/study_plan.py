@@ -30,7 +30,6 @@ class StudyPlanService:
             title=section_in.title,
             description=section_in.description,
             order=section_in.order,
-            notes=section_in.notes,
         )
 
         for res_in in section_in.resources:
@@ -99,7 +98,6 @@ class StudyPlanService:
             title=section.title,
             description=section.description,
             order=section.order,
-            notes=section.notes,
         )
         for res in section.resources:
             new_section.resources.append(self._copy_resource(res))
