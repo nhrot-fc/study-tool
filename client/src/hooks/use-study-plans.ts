@@ -1,18 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import { type StudyPlan } from '../lib/types';
+import { type StudyPlanSummary } from '../lib/types';
 import { apiClient } from '../lib/api';
 import { toast } from 'sonner';
 import { useAuth } from './use-auth';
 
 interface UseStudyPlansReturn {
-  plans: StudyPlan[];
+  plans: StudyPlanSummary[];
   status: 'loading' | 'error' | 'success';
   refreshPlans: () => Promise<void>;
 }
 
 export function useStudyPlans(): UseStudyPlansReturn {
   const { user } = useAuth();
-  const [plans, setPlans] = useState<StudyPlan[]>([]);
+  const [plans, setPlans] = useState<StudyPlanSummary[]>([]);
   const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
 
   const loadPlans = useCallback(async (userId: string) => {

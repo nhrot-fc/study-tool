@@ -1,10 +1,10 @@
-import { type Section, type CompletionStatus } from '../../lib/types';
+import { type Section, type SectionCreate, type CompletionStatus, type Resource } from '../../lib/types';
 import { ChevronRight, CheckCircle2, Circle, Clock, Ban, type LucideIcon } from 'lucide-react';
 import { ResourceCard } from '../resources/ResourceCard';
 import { cn } from '../../lib/utils';
 
 interface SectionTreeProps {
-  section: Section;
+  section: Section | SectionCreate;
   depth?: number;
 }
 
@@ -20,8 +20,8 @@ const STATUS_CONFIG: Record<CompletionStatus, StatusConfigItem> = {
   skipped: { icon: Ban, color: 'text-gray-400' }
 };
 
-function SectionHeader({ section, depth }: { section: Section; depth: number }) {
-  const status = section.status || 'not_started';
+function SectionHeader({ section, depth }: { section: Section | SectionCreate; depth: number }) {
+  const status = (section as Section).status || 'not_started';
   const { icon: StatusIcon, color: statusColor } = STATUS_CONFIG[status];
 
   return (
@@ -85,7 +85,7 @@ export function SectionTree({ section, depth = 0 }: SectionTreeProps) {
             <h4 className="text-sm font-medium text-gray-700">Recursos:</h4>
             {section.resources.map((resource, index) => (
               <ResourceCard 
-                key={resource.id || resource.url || index} 
+                key={(resource as Resource).id || resource.url || index} 
                 resource={resource} 
               />
             ))}
@@ -98,7 +98,7 @@ export function SectionTree({ section, depth = 0 }: SectionTreeProps) {
               .sort((a, b) => (a.order || 0) - (b.order || 0))
               .map((child, index) => (
                 <SectionTree 
-                  key={child.id || child.title || index} 
+                  key={(child as Section).id || child.title || index} 
                   section={child} 
                   depth={depth + 1}
                 />

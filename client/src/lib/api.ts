@@ -4,9 +4,13 @@ import type {
     RegisterRequest,
     User,
     StudyPlan,
+    StudyPlanSummary,
+    StudyPlanWithProgress,
     GeneratePlanRequest,
     StudyPlanProposal,
-    StudyPlanCreate
+    StudyPlanCreate,
+    ResourceProgress,
+    StatusUpdate
 } from './types';
 
 const API_BASE_URL = 'http://localhost:8000/api/v1';
@@ -97,12 +101,12 @@ class APIClient {
         this.clearToken();
     }
 
-    async getStudyPlans(userId: string): Promise<StudyPlan[]> {
-        return this.request<StudyPlan[]>(`/study-plans/user/${userId}`);
+    async getStudyPlans(userId: string): Promise<StudyPlanSummary[]> {
+        return this.request<StudyPlanSummary[]>(`/study-plans/user/${userId}`);
     }
 
-    async getStudyPlan(id: string): Promise<StudyPlan> {
-        return this.request<StudyPlan>(`/study-plans/${id}`);
+    async getStudyPlan(id: string): Promise<StudyPlanWithProgress> {
+        return this.request<StudyPlanWithProgress>(`/study-plans/${id}`);
     }
 
     async createStudyPlan(plan: StudyPlanCreate): Promise<StudyPlan> {
@@ -134,6 +138,21 @@ class APIClient {
         return this.request<StudyPlan>(`/study-plans/${planId}/fork`, {
             method: 'POST',
         });
+    }
+
+    async updateResourceStatus(
+        studyPlanId: string,
+        sectionId: string,
+        resourceId: string,
+        status: StatusUpdate['status']
+    ): Promise<ResourceProgress> {
+        return this.request<ResourceProgress>(
+            `/progress/study-plans/${studyPlanId}/sections/${sectionId}/resources/${resourceId}/status`,
+            {
+                method: 'POST',
+                body: JSON.stringify({ status }),
+            }
+        );
     }
 }
 

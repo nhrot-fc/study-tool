@@ -1,10 +1,10 @@
-import { type StudyPlan } from '../../lib/types';
+import { type StudyPlanSummary } from '../../lib/types';
 import { BookOpen, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '../../lib/utils';
 
 interface PlanCardProps {
-  plan: StudyPlan;
+  plan: StudyPlanSummary;
   onClick: () => void;
 }
 
@@ -37,12 +37,6 @@ export function PlanCard({ plan, onClick }: PlanCardProps) {
       <p className="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">
         {plan.description}
       </p>
-
-      <div className="flex items-center gap-2 text-xs text-gray-500 pt-3 border-t border-gray-100 w-full">
-        <span>{plan.sections?.length || 0} secciones</span>
-        <span>•</span>
-        <span>{plan.resources?.length || 0} recursos globales</span>
-      </div>
     </button>
   );
 }

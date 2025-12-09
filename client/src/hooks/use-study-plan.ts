@@ -1,17 +1,40 @@
 import { useState, useEffect, useCallback } from 'react';
-import { type StudyPlan } from '../lib/types';
+import { type StudyPlanWithProgress, type Section } from '../lib/types';
 import { apiClient } from '../lib/api';
 import { toast } from 'sonner';
 
 interface UseStudyPlanReturn {
-  plan: StudyPlan | null;
+  plan: StudyPlanWithProgress | null;
   loading: boolean;
   error: Error | null;
   forkPlan: () => Promise<void>;
 }
 
+function mergeProgress(plan: StudyPlanWithProgress): StudyPlanWithProgress {
+  if (!plan.progress) return plan;
+
+  const sectionProgressMap = new Map(
+    plan.progress.section_progresses.map(sp => [sp.section_id, sp])
+  );
+
+  const mergeSection = (section: Section): Section => {
+    const sp = sectionProgressMap.get(section.id);
+    return {
+      ...section,
+      status: sp?.status || 'not_started',
+      progress: sp?.progress || 0,
+      children: section.children.map(mergeSection)
+    };
+  };
+
+  return {
+    ...plan,
+    sections: plan.sections.map(mergeSection)
+  };
+}
+
 export function useStudyPlan(planId: string): UseStudyPlanReturn {
-  const [plan, setPlan] = useState<StudyPlan | null>(null);
+  const [plan, setPlan] = useState<StudyPlanWithProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [prevPlanId, setPrevPlanId] = useState(planId);
@@ -29,7 +52,7 @@ export function useStudyPlan(planId: string): UseStudyPlanReturn {
     apiClient.getStudyPlan(planId)
       .then((data) => {
         if (mounted) {
-          setPlan(data);
+          setPlan(mergeProgress(data));
           setError(null);
         }
       })

@@ -1,9 +1,9 @@
-import { type Resource, type ResourceType } from '../../lib/types';
+import { type Resource, type ResourceCreate, type ResourceType } from '../../lib/types';
 import { ExternalLink, FileText, Video, Book, FileCode, PenTool, GitBranch, type LucideIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface ResourceCardProps {
-  resource: Resource;
+  resource: Resource | ResourceCreate;
 }
 
 const TYPE_ICONS: Record<ResourceType, LucideIcon> = {
