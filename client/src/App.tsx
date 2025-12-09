@@ -9,7 +9,7 @@ import { PlanDetail } from './components/plans/PlanDetail';
 import { Toaster } from './components/ui/sonner';
 import { Loader2 } from 'lucide-react';
 
-type View = 'list' | 'detail' | 'generate';
+type View = 'list' | 'detail' | 'create';
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -27,7 +27,7 @@ function AppContent() {
     setCurrentView('list');
   };
 
-  const handleNavigate = (view: 'list' | 'generate') => {
+  const handleNavigate = (view: 'list' | 'create') => {
     setCurrentView(view);
     setSelectedPlanId(null);
   };
@@ -45,10 +45,7 @@ function AppContent() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <h1 className="text-gray-900 mb-2">Study Planner</h1>
-            <p className="text-gray-600">
-              Crea y gestiona tus planes de estudio con inteligencia artificial
-            </p>
+            <h1 className="text-gray-900 mb-2">Study Tool</h1>
           </div>
 
           {authMode === 'login' ? (

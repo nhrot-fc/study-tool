@@ -5,10 +5,11 @@ import type {
     User,
     StudyPlan,
     GeneratePlanRequest,
-    StudyPlanProposal
+    StudyPlanProposal,
+    StudyPlanCreate
 } from './types';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 
 class APIClient {
     private token: string | null = null;
@@ -78,49 +79,59 @@ class APIClient {
     }
 
     async getCurrentUser(): Promise<User> {
-        return this.request<User>('/users/me');
+        return this.request<User>('/auth/me');
     }
 
     async logout(): Promise<void> {
-        await this.request('/auth/logout', { method: 'POST' });
+        const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null;
+        if (refreshToken) {
+            try {
+                await this.request('/auth/logout', { 
+                    method: 'POST',
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+            } catch (e) {
+                console.error("Logout failed", e);
+            }
+        }
         this.clearToken();
     }
 
-    async getStudyPlans(): Promise<StudyPlan[]> {
-        return this.request<StudyPlan[]>('/plans');
+    async getStudyPlans(userId: string): Promise<StudyPlan[]> {
+        return this.request<StudyPlan[]>(`/study-plans/user/${userId}`);
     }
 
     async getStudyPlan(id: string): Promise<StudyPlan> {
-        return this.request<StudyPlan>(`/plans/${id}`);
+        return this.request<StudyPlan>(`/study-plans/${id}`);
     }
 
-    async createStudyPlan(plan: Omit<StudyPlan, 'id' | 'created_at' | 'updated_at'>): Promise<StudyPlan> {
-        return this.request<StudyPlan>('/plans', {
+    async createStudyPlan(plan: StudyPlanCreate): Promise<StudyPlan> {
+        return this.request<StudyPlan>('/study-plans', {
             method: 'POST',
             body: JSON.stringify(plan),
         });
     }
 
     async generatePlanWithAI(request: GeneratePlanRequest): Promise<StudyPlanProposal> {
-        return this.request<StudyPlanProposal>('/plans/generate', {
+        return this.request<StudyPlanProposal>('/study-plans/generate', {
             method: 'POST',
             body: JSON.stringify(request),
         });
     }
 
     async refinePlanWithAI(request: GeneratePlanRequest): Promise<StudyPlanProposal> {
-        return this.request<StudyPlanProposal>('/plans/refine', {
+        return this.request<StudyPlanProposal>('/study-plans/generate', {
             method: 'POST',
             body: JSON.stringify(request),
         });
     }
 
     async searchUsers(query: string): Promise<User[]> {
-        return this.request<User[]>(`/users/search?q=${encodeURIComponent(query)}`);
+        return this.request<User[]>(`/users/?username=${encodeURIComponent(query)}`);
     }
 
     async forkPlan(planId: string): Promise<StudyPlan> {
-        return this.request<StudyPlan>(`/plans/${planId}/fork`, {
+        return this.request<StudyPlan>(`/study-plans/${planId}/fork`, {
             method: 'POST',
         });
     }

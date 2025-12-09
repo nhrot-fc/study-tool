@@ -1,7 +1,7 @@
 // Types based on API schemas
 
-export type ResourceType = 'video' | 'article' | 'book' | 'documentation' | 'other';
-export type SectionStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+export type ResourceType = 'video' | 'article' | 'book' | 'blog' | 'documentation' | 'repository' | 'other';
+export type CompletionStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
 
 export interface User {
   id: string;
@@ -33,7 +33,7 @@ export interface Resource {
   url: string;
   type: ResourceType;
   description?: string;
-  duration_seconds?: number | null;
+  duration_minutes?: number | null;
 }
 
 export interface Section {
@@ -42,7 +42,7 @@ export interface Section {
   description?: string;
   order: number;
   notes?: string | null;
-  status?: SectionStatus;
+  status?: CompletionStatus;
   progress?: number;
   resources: Resource[];
   children: Section[];
@@ -64,6 +64,10 @@ export interface StudyPlanProposal {
   description: string;
   sections: Section[];
   resources: Resource[];
+}
+
+export interface StudyPlanCreate extends StudyPlanProposal {
+  user_id: string;
 }
 
 export interface GeneratePlanRequest {

@@ -3,16 +3,16 @@ import { BookOpen, User, LogOut } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface NavbarProps {
-  onNavigate: (view: 'list' | 'generate') => void;
-  currentView: 'list' | 'generate' | 'detail';
+  onNavigate: (view: 'list' | 'create') => void;
+  currentView: 'list' | 'create' | 'detail';
 }
 
 interface NavButtonProps {
-  view: 'list' | 'generate';
+  view: 'list' | 'create';
   label: string;
   mobile?: boolean;
-  currentView: 'list' | 'generate' | 'detail';
-  onNavigate: (view: 'list' | 'generate') => void;
+  currentView: 'list' | 'create' | 'detail';
+  onNavigate: (view: 'list' | 'create') => void;
 }
 
 function NavButton({ view, label, mobile = false, currentView, onNavigate }: NavButtonProps) {
@@ -55,8 +55,8 @@ export function Navbar({ onNavigate, currentView }: NavbarProps) {
                 onNavigate={onNavigate} 
               />
               <NavButton 
-                view="generate" 
-                label="Generar con IA" 
+                view="create" 
+                label="Crear Plan" 
                 currentView={currentView} 
                 onNavigate={onNavigate} 
               />
@@ -92,8 +92,8 @@ export function Navbar({ onNavigate, currentView }: NavbarProps) {
           onNavigate={onNavigate} 
         />
         <NavButton 
-          view="generate" 
-          label="Generar con IA" 
+          view="create" 
+          label="Crear Plan" 
           mobile 
           currentView={currentView} 
           onNavigate={onNavigate} 
