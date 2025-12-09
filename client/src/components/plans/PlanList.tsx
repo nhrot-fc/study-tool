@@ -31,8 +31,7 @@ export function PlanList({ onSelectPlan }: PlanListProps) {
         <div className="mx-auto size-12 bg-gray-50 rounded-full flex items-center justify-center mb-3">
           <Plus className="size-6 text-gray-400" />
         </div>
-        <h3 className="text-gray-900 font-medium">No hay planes aún</h3>
-        <p className="text-sm text-gray-500 mt-1">Genera tu primer plan de estudio con IA</p>
+        <h3 className="text-gray-900 font-medium">No hay planes</h3>
       </div>
     );
   }

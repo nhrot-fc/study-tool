@@ -44,13 +44,13 @@ export function Navbar({ onNavigate, currentView }: NavbarProps) {
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-2">
               <BookOpen className="size-8 text-blue-600" />
-              <span className="text-xl font-semibold text-gray-900">Study Planner</span>
+              <span className="text-xl font-semibold text-gray-900">Study Tool</span>
             </div>
 
             <div className="hidden md:flex items-center gap-2">
               <NavButton 
                 view="list" 
-                label="Mis Planes" 
+                label="Mi Zona" 
                 currentView={currentView} 
                 onNavigate={onNavigate} 
               />
@@ -86,7 +86,7 @@ export function Navbar({ onNavigate, currentView }: NavbarProps) {
       <div className="md:hidden border-t border-gray-200 px-4 py-2 flex gap-2">
         <NavButton 
           view="list" 
-          label="Mis Planes" 
+          label="Mi Zona" 
           mobile 
           currentView={currentView} 
           onNavigate={onNavigate} 

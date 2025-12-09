@@ -6,6 +6,7 @@ import { RegisterForm } from './components/auth/RegisterForm';
 import { Navbar } from './components/layout/Navbar';
 import { PlanList } from './components/plans/PlanList';
 import { PlanDetail } from './components/plans/PlanDetail';
+import { CreatePlan } from './components/plans/CreatePlan';
 import { Toaster } from './components/ui/sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -30,6 +31,15 @@ function AppContent() {
   const handleNavigate = (view: 'list' | 'create') => {
     setCurrentView(view);
     setSelectedPlanId(null);
+  };
+
+  const handlePlanCreated = (planId?: string) => {
+    if (planId) {
+      setSelectedPlanId(planId);
+      setCurrentView('detail');
+    } else {
+      setCurrentView('list');
+    }
   };
 
   if (isLoading) {
@@ -66,10 +76,7 @@ function AppContent() {
         {currentView === 'list' && (
           <div>
             <div className="mb-8">
-              <h1 className="text-gray-900 mb-2">Mis Planes de Estudio</h1>
-              <p className="text-gray-600">
-                Gestiona y organiza todos tus planes de aprendizaje
-              </p>
+              <h1 className="text-gray-900 mb-2">Mi Zona</h1>
             </div>
             <PlanList onSelectPlan={handleSelectPlan} />
           </div>
@@ -77,6 +84,13 @@ function AppContent() {
 
         {currentView === 'detail' && selectedPlanId && (
           <PlanDetail planId={selectedPlanId} onBack={handleBackToList} />
+        )}
+
+        {currentView === 'create' && (
+          <CreatePlan 
+            onBack={() => handleNavigate('list')} 
+            onPlanCreated={handlePlanCreated} 
+          />
         )}
       </main>
     </div>
