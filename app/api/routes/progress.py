@@ -3,30 +3,17 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import CurrentUser, get_session
+from app.core.dependencies import CurrentUser, get_progress_service
 from app.domain.enums import CompletionStatus
-from app.domain.schemas.progress import ResourceProgressRead, StudyPlanProgressRead
+from app.domain.schemas.progress import ResourceProgressRead
 from app.domain.services.progress import ProgressService
-from app.persistence.repository.progress import ProgressRepository
-from app.persistence.repository.section import SectionRepository
-from app.persistence.repository.study_plan import StudyPlanRepository
 
 router = APIRouter()
 
 
 class StatusUpdate(BaseModel):
     status: CompletionStatus
-
-
-def get_progress_service(
-    session: Annotated[AsyncSession, Depends(get_session)],
-) -> ProgressService:
-    progress_repo = ProgressRepository(session)
-    study_plan_repo = StudyPlanRepository(session)
-    section_repo = SectionRepository(session)
-    return ProgressService(progress_repo, study_plan_repo, section_repo)
 
 
 @router.post(
@@ -55,18 +42,3 @@ async def update_resource_status(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         ) from e
-
-
-@router.get(
-    "/study-plans/{study_plan_id}/progress",
-    response_model=StudyPlanProgressRead,
-)
-async def get_study_plan_progress(
-    study_plan_id: UUID,
-    current_user: CurrentUser,
-    service: Annotated[ProgressService, Depends(get_progress_service)],
-) -> StudyPlanProgressRead:
-    progress = await service.initialize_study_plan_progress(
-        current_user.id, study_plan_id
-    )
-    return StudyPlanProgressRead.model_validate(progress)

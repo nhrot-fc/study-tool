@@ -6,18 +6,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import (
     CurrentUser,
+    CurrentUserOptional,
     get_gemini_service,
+    get_progress_service,
     get_session,
     get_user_service,
 )
+from app.domain.schemas.progress import StudyPlanProgressRead
 from app.domain.schemas.study_plan import (
     StudyPlanCreate,
     StudyPlanGenerateRequest,
     StudyPlanProposal,
     StudyPlanRead,
     StudyPlanReadDetail,
+    StudyPlanReadDetailWithProgress,
 )
 from app.domain.services.gemini import GeminiService
+from app.domain.services.progress import ProgressService
 from app.domain.services.study_plan import StudyPlanService
 from app.domain.services.user import UserService
 from app.persistence.repository.study_plan import StudyPlanRepository
@@ -81,17 +86,28 @@ async def generate_study_plan(
     return proposal
 
 
-@router.get("/{plan_id}", response_model=StudyPlanReadDetail)
+@router.get("/{plan_id}", response_model=StudyPlanReadDetailWithProgress)
 async def get_study_plan(
     plan_id: UUID,
     service: Annotated[StudyPlanService, Depends(get_study_plan_service)],
-) -> StudyPlanReadDetail:
+    progress_service: Annotated[ProgressService, Depends(get_progress_service)],
+    current_user: CurrentUserOptional,
+) -> StudyPlanReadDetailWithProgress:
     plan = await service.get_study_plan_by_id(plan_id)
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Study plan not found"
         )
-    return StudyPlanReadDetail.model_validate(plan)
+
+    progress = None
+    if current_user:
+        progress = await progress_service.initialize_study_plan_progress(
+            current_user.id, plan_id
+        )
+        progress = StudyPlanProgressRead.model_validate(progress)
+
+    detail = StudyPlanReadDetail.model_validate(plan)
+    return StudyPlanReadDetailWithProgress(**detail.model_dump(), progress=progress)
 
 
 @router.post(

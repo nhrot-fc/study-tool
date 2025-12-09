@@ -43,7 +43,13 @@ class ProgressService:
 
         await self._create_section_progress_tree(user_id, sp_progress.id, plan.sections)
 
-        return sp_progress
+        # Reload with relationships
+        reloaded = await self.progress_repo.get_study_plan_progress(
+            user_id, study_plan_id
+        )
+        if not reloaded:
+            raise ValueError("Failed to initialize progress")
+        return reloaded
 
     async def _create_section_progress_tree(
         self, user_id: UUID, sp_progress_id: UUID, sections: list[Section]

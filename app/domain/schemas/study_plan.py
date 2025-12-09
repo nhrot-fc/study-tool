@@ -3,6 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from app.domain.schemas.progress import StudyPlanProgressRead
 from app.domain.schemas.resource import ResourceCreate, ResourceRead
 from app.domain.schemas.section import SectionCreate, SectionRead
 
@@ -34,6 +35,10 @@ class StudyPlanRead(StudyPlanBase):
 class StudyPlanReadDetail(StudyPlanRead):
     sections: list[SectionRead] = []
     resources: list[ResourceRead] = []
+
+
+class StudyPlanReadDetailWithProgress(StudyPlanReadDetail):
+    progress: StudyPlanProgressRead | None = None
 
 
 class StudyPlanGenerateRequest(BaseModel):
