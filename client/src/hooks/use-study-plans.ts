@@ -15,15 +15,9 @@ export function useStudyPlans(): UseStudyPlansReturn {
   const [plans, setPlans] = useState<StudyPlan[]>([]);
   const [status, setStatus] = useState<'loading' | 'error' | 'success'>('loading');
 
-  const fetchPlans = useCallback(async (isRefresh = false) => {
-    if (!user) return;
-
-    if (isRefresh) {
-      setStatus('loading');
-    }
-    
+  const loadPlans = useCallback(async (userId: string) => {
     try {
-      const data = await apiClient.getStudyPlans(user.id);
+      const data = await apiClient.getStudyPlans(userId);
       setPlans(data);
       setStatus('success');
     } catch (error) {
@@ -31,13 +25,22 @@ export function useStudyPlans(): UseStudyPlansReturn {
       setStatus('error');
       toast.error('Error al cargar los planes de estudio');
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     if (user) {
-      fetchPlans();
+      const execute = async () => {
+        await loadPlans(user.id);
+      };
+      execute();
     }
-  }, [fetchPlans, user]);
+  }, [user, loadPlans]);
 
-  return { plans, status, refreshPlans: () => fetchPlans(true) };
+  const refreshPlans = async () => {
+    if (!user) return;
+    setStatus('loading');
+    await loadPlans(user.id);
+  };
+
+  return { plans, status, refreshPlans };
 }

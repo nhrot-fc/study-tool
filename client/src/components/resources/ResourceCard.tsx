@@ -1,5 +1,5 @@
 import { type Resource, type ResourceType } from '../../lib/types';
-import { ExternalLink, FileText, Video, Book, FileCode, type LucideIcon } from 'lucide-react';
+import { ExternalLink, FileText, Video, Book, FileCode, PenTool, GitBranch, type LucideIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 interface ResourceCardProps {
@@ -11,6 +11,8 @@ const TYPE_ICONS: Record<ResourceType, LucideIcon> = {
   article: FileText,
   book: Book,
   documentation: FileCode,
+  blog: PenTool,
+  repository: GitBranch,
   other: FileText
 };
 
@@ -49,9 +51,9 @@ export function ResourceCard({ resource }: ResourceCardProps) {
           <span className="text-[10px] uppercase tracking-wider text-gray-500 font-medium bg-gray-100 px-1.5 py-0.5 rounded">
             {resource.type}
           </span>
-          {resource.duration_seconds && (
+          {resource.duration_minutes && (
             <span className="text-[10px] text-gray-400">
-              {Math.round(resource.duration_seconds / 60)} min
+              {resource.duration_minutes} min
             </span>
           )}
         </div>

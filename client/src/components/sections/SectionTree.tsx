@@ -1,5 +1,5 @@
-import { type Section, type SectionStatus } from '../../lib/types';
-import { ChevronRight, CheckCircle2, Circle, Clock, type LucideIcon } from 'lucide-react';
+import { type Section, type CompletionStatus } from '../../lib/types';
+import { ChevronRight, CheckCircle2, Circle, Clock, Ban, type LucideIcon } from 'lucide-react';
 import { ResourceCard } from '../resources/ResourceCard';
 import { cn } from '../../lib/utils';
 
@@ -13,14 +13,15 @@ interface StatusConfigItem {
   color: string;
 }
 
-const STATUS_CONFIG: Record<SectionStatus, StatusConfigItem> = {
-  NOT_STARTED: { icon: Circle, color: 'text-gray-400' },
-  IN_PROGRESS: { icon: Clock, color: 'text-blue-500' },
-  COMPLETED: { icon: CheckCircle2, color: 'text-green-500' }
+const STATUS_CONFIG: Record<CompletionStatus, StatusConfigItem> = {
+  not_started: { icon: Circle, color: 'text-gray-400' },
+  in_progress: { icon: Clock, color: 'text-blue-500' },
+  completed: { icon: CheckCircle2, color: 'text-green-500' },
+  skipped: { icon: Ban, color: 'text-gray-400' }
 };
 
 function SectionHeader({ section, depth }: { section: Section; depth: number }) {
-  const status = section.status || 'NOT_STARTED';
+  const status = section.status || 'not_started';
   const { icon: StatusIcon, color: statusColor } = STATUS_CONFIG[status];
 
   return (
