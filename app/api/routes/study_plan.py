@@ -72,8 +72,6 @@ async def generate_study_plan(
     proposal = gemini_service.generate_study_plan_proposal(
         message=request.message,
         topic=request.topic,
-        level=request.level,
-        goals=request.goals,
         existing_proposal=request.proposal,
     )
 

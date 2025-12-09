@@ -49,8 +49,6 @@ class GeminiService:
     def generate_study_plan_proposal(
         self,
         message: str,
-        level: str = "Beginner",
-        goals: str | None = None,
         topic: str | None = None,
         existing_proposal: StudyPlanProposal | None = None,
     ) -> StudyPlanProposal | None:
@@ -63,7 +61,7 @@ class GeminiService:
 
             Current Plan (JSON):
             {existing_proposal.model_dump_json(indent=2)}
-
+            Topic/Context: {topic or message}
             User Instruction: {message}
 
             Update the study plan according to the user's instruction.
@@ -77,8 +75,6 @@ class GeminiService:
             Generate a study plan.
             Topic/Context: {topic or message}
             User Instruction: {message}
-            Level: {level}.
-            Goals: {goals or "General mastery"}.
 
             Return a JSON object that strictly follows this JSON schema:
             {json.dumps(schema, indent=2)}

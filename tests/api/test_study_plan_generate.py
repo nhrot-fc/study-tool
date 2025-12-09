@@ -58,7 +58,6 @@ async def test_generate_study_plan(client: AsyncClient, user_service: UserServic
     generate_data = {
         "message": "Teach me Python",
         "topic": "Python",
-        "level": "Beginner",
     }
 
     response = await client.post(
@@ -75,8 +74,6 @@ async def test_generate_study_plan(client: AsyncClient, user_service: UserServic
     mock_gemini_service.generate_study_plan_proposal.assert_called_with(
         message="Teach me Python",
         topic="Python",
-        level="Beginner",
-        goals=None,
         existing_proposal=None,
     )
 

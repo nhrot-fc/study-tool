@@ -39,6 +39,4 @@ class StudyPlanReadDetail(StudyPlanRead):
 class StudyPlanGenerateRequest(BaseModel):
     message: str
     topic: str | None = None
-    level: str = "Beginner"
-    goals: str | None = None
     proposal: StudyPlanProposal | None = None
