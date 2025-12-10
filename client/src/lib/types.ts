@@ -1,7 +1,17 @@
 // Types based on API schemas
 
-export type ResourceType = 'video' | 'article' | 'book' | 'blog' | 'documentation' | 'repository';
-export type CompletionStatus = 'not_started' | 'in_progress' | 'completed' | 'skipped';
+export type ResourceType =
+  | "video"
+  | "article"
+  | "book"
+  | "blog"
+  | "documentation"
+  | "repository";
+export type CompletionStatus =
+  | "not_started"
+  | "in_progress"
+  | "completed"
+  | "skipped";
 
 export interface User {
   id: string;
@@ -95,7 +105,7 @@ export interface StudyPlanBase {
   forked_from_id?: string | null;
 }
 
-export type StudyPlanSummary = StudyPlanBase
+export type StudyPlanSummary = StudyPlanBase;
 
 export interface StudyPlan extends StudyPlanBase {
   sections: Section[];

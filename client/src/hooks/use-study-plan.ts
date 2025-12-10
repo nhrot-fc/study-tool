@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import { type StudyPlanWithProgress, type Section } from '../lib/types';
-import { apiClient } from '../lib/api';
-import { toast } from 'sonner';
+import { useState, useEffect, useCallback } from "react";
+import { type StudyPlanWithProgress, type Section } from "../lib/types";
+import { apiClient } from "../lib/api";
+import { toast } from "sonner";
 
 interface UseStudyPlanReturn {
   plan: StudyPlanWithProgress | null;
@@ -14,22 +14,22 @@ function mergeProgress(plan: StudyPlanWithProgress): StudyPlanWithProgress {
   if (!plan.progress) return plan;
 
   const sectionProgressMap = new Map(
-    plan.progress.section_progresses.map(sp => [sp.section_id, sp])
+    plan.progress.section_progresses.map((sp) => [sp.section_id, sp]),
   );
 
   const mergeSection = (section: Section): Section => {
     const sp = sectionProgressMap.get(section.id);
     return {
       ...section,
-      status: sp?.status || 'not_started',
+      status: sp?.status || "not_started",
       progress: sp?.progress || 0,
-      children: section.children.map(mergeSection)
+      children: section.children.map(mergeSection),
     };
   };
 
   return {
     ...plan,
-    sections: plan.sections.map(mergeSection)
+    sections: plan.sections.map(mergeSection),
   };
 }
 
@@ -48,8 +48,9 @@ export function useStudyPlan(planId: string): UseStudyPlanReturn {
 
   useEffect(() => {
     let mounted = true;
-    
-    apiClient.getStudyPlan(planId)
+
+    apiClient
+      .getStudyPlan(planId)
       .then((data) => {
         if (mounted) {
           setPlan(mergeProgress(data));
@@ -59,7 +60,7 @@ export function useStudyPlan(planId: string): UseStudyPlanReturn {
       .catch((err) => {
         if (mounted) {
           setError(err);
-          toast.error('Error al cargar el plan');
+          toast.error("Error al cargar el plan");
         }
       })
       .finally(() => {
@@ -75,14 +76,14 @@ export function useStudyPlan(planId: string): UseStudyPlanReturn {
 
   const forkPlan = useCallback(async () => {
     if (!plan?.id) return;
-    
-    const toastId = toast.loading('Duplicando plan...');
+
+    const toastId = toast.loading("Duplicando plan...");
     try {
       const newPlan = await apiClient.forkPlan(plan.id);
       setPlan(newPlan);
-      toast.success('Plan duplicado exitosamente', { id: toastId });
+      toast.success("Plan duplicado exitosamente", { id: toastId });
     } catch (err) {
-      toast.error('Error al duplicar el plan', { id: toastId });
+      toast.error("Error al duplicar el plan", { id: toastId });
       throw err;
     }
   }, [plan]);

@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import type { User } from './types';
-import { apiClient } from './api';
-import { AuthContext } from '../context/auth-context';
+import React, { useState, useEffect } from "react";
+import type { User } from "./types";
+import { apiClient } from "./api";
+import { AuthContext } from "../context/auth-context";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(() => !!localStorage.getItem('access_token'));
+  const [isLoading, setIsLoading] = useState(
+    () => !!localStorage.getItem("access_token"),
+  );
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('access_token');
+      const token = localStorage.getItem("access_token");
       if (!token) return;
 
       try {
         const currentUser = await apiClient.getCurrentUser();
         setUser(currentUser);
       } catch {
-        localStorage.removeItem('access_token');
+        localStorage.removeItem("access_token");
       } finally {
         setIsLoading(false);
       }
@@ -27,12 +29,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const tokens = await apiClient.login({ email, password });
-    localStorage.setItem('refresh_token', tokens.refresh_token);
+    localStorage.setItem("refresh_token", tokens.refresh_token);
     const currentUser = await apiClient.getCurrentUser();
     setUser(currentUser);
   };
 
-  const register = async (email: string, username: string, password: string) => {
+  const register = async (
+    email: string,
+    username: string,
+    password: string,
+  ) => {
     await apiClient.register({ email, username, password });
     // Auto-login after registration
     await login(email, password);
@@ -49,4 +55,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     </AuthContext.Provider>
   );
 }
-
