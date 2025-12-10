@@ -95,7 +95,7 @@ export interface StudyPlanBase {
   forked_from_id?: string | null;
 }
 
-export interface StudyPlanSummary extends StudyPlanBase {}
+export type StudyPlanSummary = StudyPlanBase
 
 export interface StudyPlan extends StudyPlanBase {
   sections: Section[];

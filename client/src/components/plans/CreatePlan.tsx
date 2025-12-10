@@ -7,7 +7,7 @@ import { apiClient } from '../../lib/api';
 import { type StudyPlanProposal } from '../../lib/types';
 import { SectionTree } from '../sections/SectionTree';
 import { ResourceCard } from '../resources/ResourceCard';
-import { Loader2, Sparkles, Save, ArrowLeft, RefreshCw } from 'lucide-react';
+import { Loader2, Sparkles, Save, ArrowLeft, RefreshCw, FileJson } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -42,6 +42,8 @@ export function CreatePlan({ onBack, onPlanCreated }: CreatePlanProps) {
   const [proposal, setProposal] = useState<StudyPlanProposal | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEditingJson, setIsEditingJson] = useState(false);
+  const [jsonInput, setJsonInput] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,6 +59,7 @@ export function CreatePlan({ onBack, onPlanCreated }: CreatePlanProps) {
       const result = await apiClient.generatePlanWithAI({
         topic: values.topic,
         message: values.message,
+        proposal: proposal ?? undefined,
       });
       setProposal(result);
       toast.success("Plan generado exitosamente");
@@ -86,6 +89,43 @@ export function CreatePlan({ onBack, onPlanCreated }: CreatePlanProps) {
       setIsSaving(false);
     }
   }
+
+  const toggleJsonEditor = () => {
+    if (!isEditingJson && proposal) {
+      setJsonInput(JSON.stringify(proposal, null, 2));
+    }
+    setIsEditingJson(!isEditingJson);
+  };
+
+  const handleJsonUpdate = () => {
+    try {
+      const parsed = JSON.parse(jsonInput);
+      setProposal(parsed);
+      setIsEditingJson(false);
+      toast.success("Estructura actualizada");
+    } catch {
+      toast.error("JSON inválido");
+    }
+  };
+
+  const startManualCreation = () => {
+    const skeleton: StudyPlanProposal = {
+      title: "Mi Plan Personalizado",
+      description: "Describe tu plan aquí...",
+      sections: [
+        {
+          title: "Sección 1",
+          order: 1,
+          resources: [],
+          children: []
+        }
+      ],
+      resources: []
+    };
+    setProposal(skeleton);
+    setJsonInput(JSON.stringify(skeleton, null, 2));
+    setIsEditingJson(true);
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -162,77 +202,103 @@ export function CreatePlan({ onBack, onPlanCreated }: CreatePlanProps) {
           {proposal ? (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <Card className="border-blue-200 bg-blue-50/50">
-                <CardHeader>
-                  <CardTitle className="text-blue-900">Vista Previa del Plan</CardTitle>
-                  <CardDescription>
-                    Revisa el plan generado antes de guardarlo.
-                  </CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                  <div className="space-y-1">
+                    <CardTitle className="text-blue-900">Vista Previa del Plan</CardTitle>
+                    <CardDescription>
+                      Revisa el plan generado antes de guardarlo.
+                    </CardDescription>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={toggleJsonEditor} title="Editar JSON">
+                    <FileJson className="size-4 text-blue-900" />
+                  </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-semibold text-lg">{proposal.title}</h3>
-                      <p className="text-sm text-muted-foreground">{proposal.description}</p>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button onClick={handleSave} disabled={isSaving} className="flex-1">
-                        {isSaving ? (
-                          <>
-                            <Loader2 className="mr-2 size-4 animate-spin" />
-                            Guardando...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="mr-2 size-4" />
-                            Guardar Plan
-                          </>
-                        )}
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={form.handleSubmit(onSubmit)}
-                        disabled={isGenerating || isSaving}
-                        title="Regenerar"
-                      >
-                        <RefreshCw className={cn("size-4", isGenerating && "animate-spin")} />
+                  {isEditingJson ? (
+                    <div className="space-y-4">
+                      <Textarea 
+                        value={jsonInput} 
+                        onChange={(e) => setJsonInput(e.target.value)} 
+                        className="font-mono text-xs min-h-[400px]" 
+                      />
+                      <Button onClick={handleJsonUpdate} className="w-full">
+                        Actualizar Vista Previa
                       </Button>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="font-semibold text-lg">{proposal.title}</h3>
+                        <p className="text-sm text-muted-foreground">{proposal.description}</p>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button onClick={handleSave} disabled={isSaving} className="flex-1">
+                          {isSaving ? (
+                            <>
+                              <Loader2 className="mr-2 size-4 animate-spin" />
+                              Guardando...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="mr-2 size-4" />
+                              Guardar Plan
+                            </>
+                          )}
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={form.handleSubmit(onSubmit)}
+                          disabled={isGenerating || isSaving}
+                          title="Regenerar"
+                        >
+                          <RefreshCw className={cn("size-4", isGenerating && "animate-spin")} />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
-              <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Contenido Propuesto</h3>
-                {proposal.sections.map((section, index) => (
-                  <SectionTree 
-                    key={index} 
-                    section={section} 
-                  />
-                ))}
-              </div>
-
-              {proposal.resources && proposal.resources.length > 0 && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Recursos Recomendados</h3>
-                  <div className="grid gap-3">
-                    {proposal.resources.map((resource, index) => (
-                      <ResourceCard 
+              {!isEditingJson && (
+                <>
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Contenido Propuesto</h3>
+                    {proposal.sections.map((section, index) => (
+                      <SectionTree 
                         key={index} 
-                        resource={resource} 
+                        section={section} 
                       />
                     ))}
                   </div>
-                </div>
+
+                  {proposal.resources && proposal.resources.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-lg">Recursos Recomendados</h3>
+                      <div className="grid gap-3">
+                        {proposal.resources.map((resource, index) => (
+                          <ResourceCard 
+                            key={index} 
+                            resource={resource} 
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-xl text-muted-foreground min-h-[400px]">
               <Sparkles className="size-12 mb-4 text-muted-foreground/50" />
               <h3 className="font-medium text-lg mb-2">Tu plan aparecerá aquí</h3>
-              <p className="text-sm max-w-xs">
+              <p className="text-sm max-w-xs mb-4">
                 Completa el formulario y presiona "Generar Plan" para ver la propuesta de la IA.
               </p>
+              <Button variant="outline" size="sm" onClick={startManualCreation}>
+                <FileJson className="mr-2 size-4" />
+                Crear estructura manualmente
+              </Button>
             </div>
           )}
         </div>
