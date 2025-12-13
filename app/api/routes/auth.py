@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app.core.dependencies import CurrentUser, get_auth_service, get_user_service
-from app.domain.schemas.auth import LoginRequest
+from app.domain.schemas.auth import LoginRequest, RegisterRequest
 from app.domain.schemas.token import Token
 from app.domain.schemas.user import UserCreate, UserRead
 from app.domain.services.auth import AuthService
@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def register(
-    user_in: UserCreate,
+    user_in: RegisterRequest,
     user_service: Annotated[UserService, Depends(get_user_service)],
 ) -> UserRead:
     user = await user_service.get_user_by_email(user_in.email)
@@ -24,7 +24,11 @@ async def register(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="The user with this email already exists in the system.",
         )
-    user = await user_service.create_user(user_in)
+    user = await user_service.create_user(UserCreate(
+        username=user_in.username,
+        email=user_in.email,
+        password=user_in.password
+    ))
     return UserRead.model_validate(user)
 
 

@@ -13,6 +13,18 @@ import type {
   StatusUpdate,
 } from "./types";
 
+export class ApiError extends Error {
+  status: number;
+  data?: any;
+
+  constructor(status: number, message: string, data?: any) {
+    super(message);
+    this.status = status;
+    this.data = data;
+    this.name = "ApiError";
+  }
+}
+
 const API_BASE_URL = "http://localhost:8000/api/v1";
 
 class APIClient {
@@ -62,10 +74,30 @@ class APIClient {
       if (response.status === 401) {
         this.clearToken();
       }
-      const error = await response
-        .json()
-        .catch(() => ({ detail: "An error occurred" }));
-      throw new Error(error.detail || "API request failed");
+
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { detail: "An error occurred" };
+      }
+
+      let message = "API request failed";
+      if (errorData.detail) {
+        if (typeof errorData.detail === "string") {
+          message = errorData.detail;
+        } else if (Array.isArray(errorData.detail)) {
+          // Handle FastAPI validation errors
+          message = errorData.detail
+            .map((err: any) => {
+              const field = err.loc ? err.loc[err.loc.length - 1] : "Field";
+              return `${field}: ${err.msg}`;
+            })
+            .join(", ");
+        }
+      }
+
+      throw new ApiError(response.status, message, errorData);
     }
 
     return response.json();

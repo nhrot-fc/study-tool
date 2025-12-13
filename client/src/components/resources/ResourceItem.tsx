@@ -1,0 +1,54 @@
+import { Box, HStack, VStack, Text, Badge, Link, Icon } from "@chakra-ui/react";
+import { LuFileText, LuVideo, LuBook, LuExternalLink } from "react-icons/lu";
+import type { Resource, ResourceType } from "../../lib/types";
+
+const ResourceIcon = ({ type }: { type: ResourceType }) => {
+  switch (type) {
+    case "video":
+      return <Icon as={LuVideo} />;
+    case "book":
+      return <Icon as={LuBook} />;
+    default:
+      return <Icon as={LuFileText} />;
+  }
+};
+
+export const ResourceItem = ({ resource }: { resource: Resource }) => {
+  return (
+    <HStack
+      p={2}
+      borderWidth="1px"
+      borderRadius="md"
+      _hover={{ bg: "gray.50", _dark: { bg: "gray.800" } }}
+      width="full"
+      align="start"
+    >
+      <Box color="gray.500" mt={1}>
+        <ResourceIcon type={resource.type} />
+      </Box>
+      <VStack align="start" gap={0} flex={1}>
+        <Link
+          href={resource.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          fontWeight="medium"
+          fontSize="sm"
+          lineHeight="short"
+        >
+          {resource.title}{" "}
+          <Icon as={LuExternalLink} boxSize={3} display="inline" />
+        </Link>
+        {resource.description && (
+          <Text fontSize="xs" color="gray.500" noOfLines={1}>
+            {resource.description}
+          </Text>
+        )}
+      </VStack>
+      {resource.duration_minutes && (
+        <Badge variant="subtle" size="sm">
+          {resource.duration_minutes} min
+        </Badge>
+      )}
+    </HStack>
+  );
+};

@@ -57,6 +57,21 @@ const Header = () => {
           </HStack>
         </Box>
 
+        <HStack gap={1} ml={4} display={{ base: "none", md: "flex" }}>
+          <RouterLink to="/about">
+            <Button variant="ghost" size="sm" as="span">
+              About
+            </Button>
+          </RouterLink>
+          {user && (
+            <RouterLink to="/plans/new">
+              <Button variant="ghost" size="sm" as="span">
+                Create
+              </Button>
+            </RouterLink>
+          )}
+        </HStack>
+
         <Spacer />
 
         <HStack gap={3}>
