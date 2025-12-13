@@ -10,6 +10,7 @@ import {
   Spinner,
   Center,
   Card,
+  Progress,
 } from "@chakra-ui/react";
 import { useStudyPlan } from "../hooks/use-study-plan";
 import { StudyPlanTree } from "../components/plans/StudyPlanTree";
@@ -19,7 +20,9 @@ import { LuArrowLeft, LuCopy } from "react-icons/lu";
 export default function PlanDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { plan, loading, error, forkPlan } = useStudyPlan(id || "");
+  const { plan, loading, error, forkPlan, toggleResourceStatus } = useStudyPlan(
+    id || "",
+  );
 
   if (loading) {
     return (
@@ -40,6 +43,8 @@ export default function PlanDetail() {
     );
   }
 
+  const progress = plan.progress?.progress ? plan.progress.progress * 100 : 0;
+
   return (
     <Container maxW="container.xl" py={8}>
       <Button variant="ghost" mb={6} onClick={() => navigate("/")}>
@@ -53,11 +58,28 @@ export default function PlanDetail() {
         <Card.Root>
           <Card.Body>
             <HStack justify="space-between" align="start" mb={4}>
-              <VStack align="start" gap={2}>
+              <VStack align="start" gap={2} flex={1}>
                 <Heading size="2xl">{plan.title}</Heading>
                 <Text color="gray.600" fontSize="lg">
                   {plan.description}
                 </Text>
+                {plan.progress && (
+                  <Box w="full" maxW="md" mt={2}>
+                    <HStack justify="space-between" mb={1}>
+                      <Text fontSize="sm" fontWeight="medium">
+                        Progress
+                      </Text>
+                      <Text fontSize="sm" fontWeight="bold">
+                        {Math.round(progress)}%
+                      </Text>
+                    </HStack>
+                    <Progress.Root value={progress} size="lg" colorPalette="teal">
+                      <Progress.Track>
+                        <Progress.Range />
+                      </Progress.Track>
+                    </Progress.Root>
+                  </Box>
+                )}
               </VStack>
               <Button
                 variant="outline"
@@ -74,7 +96,10 @@ export default function PlanDetail() {
           <Heading size="lg" mb={4}>
             Curriculum
           </Heading>
-          <StudyPlanTree sections={plan.sections} />
+          <StudyPlanTree
+            sections={plan.sections}
+            onResourceToggle={toggleResourceStatus}
+          />
         </Box>
 
         {plan.resources && plan.resources.length > 0 && (

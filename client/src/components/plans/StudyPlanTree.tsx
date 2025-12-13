@@ -21,6 +21,11 @@ import { ResourceItem } from "../resources/ResourceItem";
 
 interface StudyPlanTreeProps {
   sections: Section[];
+  onResourceToggle?: (
+    sectionId: string,
+    resourceId: string,
+    currentStatus: CompletionStatus,
+  ) => void;
 }
 
 const StatusIcon = ({ status }: { status?: CompletionStatus }) => {
@@ -41,9 +46,15 @@ const StatusIcon = ({ status }: { status?: CompletionStatus }) => {
 const SectionNode = ({
   section,
   depth = 0,
+  onResourceToggle,
 }: {
   section: Section;
   depth?: number;
+  onResourceToggle?: (
+    sectionId: string,
+    resourceId: string,
+    currentStatus: CompletionStatus,
+  ) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(true);
   const hasChildren = section.children && section.children.length > 0;
@@ -102,7 +113,20 @@ const SectionNode = ({
                     Resources
                   </Text>
                   {section.resources.map((resource) => (
-                    <ResourceItem key={resource.id} resource={resource} />
+                    <ResourceItem
+                      key={resource.id}
+                      resource={resource}
+                      onToggle={
+                        onResourceToggle
+                          ? () =>
+                              onResourceToggle(
+                                section.id,
+                                resource.id,
+                                resource.status || "not_started",
+                              )
+                          : undefined
+                      }
+                    />
                   ))}
                 </VStack>
               )}
@@ -114,6 +138,7 @@ const SectionNode = ({
                       key={child.id}
                       section={child}
                       depth={depth + 1}
+                      onResourceToggle={onResourceToggle}
                     />
                   ))}
                 </VStack>
@@ -126,7 +151,10 @@ const SectionNode = ({
   );
 };
 
-export const StudyPlanTree = ({ sections }: StudyPlanTreeProps) => {
+export const StudyPlanTree = ({
+  sections,
+  onResourceToggle,
+}: StudyPlanTreeProps) => {
   if (!sections || sections.length === 0) {
     return (
       <Box p={4} textAlign="center" color="gray.500">
@@ -138,7 +166,11 @@ export const StudyPlanTree = ({ sections }: StudyPlanTreeProps) => {
   return (
     <VStack align="stretch" gap={4}>
       {sections.map((section) => (
-        <SectionNode key={section.id} section={section} />
+        <SectionNode
+          key={section.id}
+          section={section}
+          onResourceToggle={onResourceToggle}
+        />
       ))}
     </VStack>
   );

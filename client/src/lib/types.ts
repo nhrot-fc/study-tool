@@ -47,6 +47,7 @@ export interface ResourceCreate {
 
 export interface Resource extends ResourceCreate {
   id: string;
+  status?: CompletionStatus;
 }
 
 export interface SectionCreate {

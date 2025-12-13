@@ -1,4 +1,13 @@
-import { Box, HStack, VStack, Text, Badge, Link, Icon } from "@chakra-ui/react";
+import {
+  Box,
+  HStack,
+  VStack,
+  Text,
+  Badge,
+  Link,
+  Icon,
+  Checkbox,
+} from "@chakra-ui/react";
 import { LuFileText, LuVideo, LuBook, LuExternalLink } from "react-icons/lu";
 import type { Resource, ResourceType } from "../../lib/types";
 
@@ -13,7 +22,12 @@ const ResourceIcon = ({ type }: { type: ResourceType }) => {
   }
 };
 
-export const ResourceItem = ({ resource }: { resource: Resource }) => {
+interface ResourceItemProps {
+  resource: Resource;
+  onToggle?: () => void;
+}
+
+export const ResourceItem = ({ resource, onToggle }: ResourceItemProps) => {
   return (
     <HStack
       p={2}
@@ -22,7 +36,21 @@ export const ResourceItem = ({ resource }: { resource: Resource }) => {
       _hover={{ bg: "gray.50", _dark: { bg: "gray.800" } }}
       width="full"
       align="start"
+      bg={resource.status === "completed" ? "green.50" : undefined}
+      _dark={{
+        bg: resource.status === "completed" ? "green.900/20" : undefined,
+      }}
     >
+      {onToggle && (
+        <Checkbox.Root
+          checked={resource.status === "completed"}
+          onCheckedChange={onToggle}
+          mt={1}
+        >
+          <Checkbox.HiddenInput />
+          <Checkbox.Control />
+        </Checkbox.Root>
+      )}
       <Box color="gray.500" mt={1}>
         <ResourceIcon type={resource.type} />
       </Box>
@@ -34,12 +62,16 @@ export const ResourceItem = ({ resource }: { resource: Resource }) => {
           fontWeight="medium"
           fontSize="sm"
           lineHeight="short"
+          textDecoration={
+            resource.status === "completed" ? "line-through" : "none"
+          }
+          color={resource.status === "completed" ? "gray.500" : undefined}
         >
           {resource.title}{" "}
           <Icon as={LuExternalLink} boxSize={3} display="inline" />
         </Link>
         {resource.description && (
-          <Text fontSize="xs" color="gray.500" noOfLines={1}>
+          <Text fontSize="xs" color="gray.500" lineClamp={1}>
             {resource.description}
           </Text>
         )}
