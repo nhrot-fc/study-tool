@@ -157,10 +157,7 @@ class APIClient {
     });
   }
 
-  async updateStudyPlan(
-    id: string,
-    plan: StudyPlanUpdate,
-  ): Promise<StudyPlan> {
+  async updateStudyPlan(id: string, plan: StudyPlanUpdate): Promise<StudyPlan> {
     return this.request<StudyPlan>(`/plan/${id}`, {
       method: "PUT",
       body: JSON.stringify(plan),

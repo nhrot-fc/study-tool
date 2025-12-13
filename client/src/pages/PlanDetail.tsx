@@ -49,7 +49,7 @@ export default function PlanDetail() {
   const progress = plan.progress?.progress ? plan.progress.progress * 100 : 0;
 
   return (
-    <Container maxW="container.xl" py={8}>
+    <Container maxW="container.xl">
       <Button variant="ghost" mb={6} onClick={() => navigate("/")}>
         <HStack gap={2}>
           <LuArrowLeft />
@@ -76,7 +76,11 @@ export default function PlanDetail() {
                         {Math.round(progress)}%
                       </Text>
                     </HStack>
-                    <Progress.Root value={progress} size="lg" colorPalette="teal">
+                    <Progress.Root
+                      value={progress}
+                      size="lg"
+                      colorPalette="teal"
+                    >
                       <Progress.Track>
                         <Progress.Range />
                       </Progress.Track>
@@ -84,8 +88,8 @@ export default function PlanDetail() {
                   </Box>
                 )}
               </VStack>
-              <HStack>
-                {user && plan.user_id === user.id && (
+              {user && plan.user_id === user.id && (
+                <HStack>
                   <Button
                     variant="outline"
                     onClick={() => navigate(`/plans/${id}/edit`)}
@@ -93,15 +97,16 @@ export default function PlanDetail() {
                   >
                     <MdEdit /> Edit
                   </Button>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={forkPlan}
-                  title="Fork this plan"
-                >
-                  <LuCopy /> Fork
-                </Button>
-              </HStack>
+
+                  <Button
+                    variant="outline"
+                    onClick={forkPlan}
+                    title="Fork this plan"
+                  >
+                    <LuCopy /> Fork
+                  </Button>
+                </HStack>
+              )}
             </HStack>
           </Card.Body>
         </Card.Root>

@@ -1,10 +1,19 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Container, Center, Spinner, Text, Button } from "@chakra-ui/react";
+import {
+  Container,
+  Center,
+  Spinner,
+  Text,
+  Button,
+  HStack,
+  VStack,
+} from "@chakra-ui/react";
 import { apiClient } from "../lib/api";
 import { StudyPlanForm } from "../components/plans/StudyPlanForm";
 import { type StudyPlanWithProgress, type SectionUpsert } from "../lib/types";
 import { toast } from "sonner";
+import { LuArrowLeft } from "react-icons/lu";
 
 export default function PlanEdit() {
   const { id } = useParams<{ id: string }>();
@@ -65,9 +74,6 @@ export default function PlanEdit() {
     );
   }
 
-  // Transform plan sections to SectionUpsert[]
-  // Since Section matches SectionUpsert structure (with extra fields like status/progress which are ignored),
-  // we can pass it directly. TypeScript might need a cast if strict.
   const initialData = {
     title: plan.title,
     description: plan.description,
@@ -75,16 +81,22 @@ export default function PlanEdit() {
   };
 
   return (
-    <Container maxW="container.xl" py={8}>
-      <Button variant="ghost" mb={4} onClick={() => navigate(`/plans/${id}`)}>
-        Cancel
+    <Container maxW="container.xl">
+      <Button variant="ghost" mb={6} onClick={() => navigate(`/plans/${id}`)}>
+        <HStack gap={2}>
+          <LuArrowLeft />
+          <Text>Back</Text>
+        </HStack>
       </Button>
-      <StudyPlanForm
-        initialData={initialData}
-        onSubmit={handleSave}
-        isLoading={saving}
-        submitLabel="Update Plan"
-      />
+
+      <VStack gap={8} align="stretch">
+        <StudyPlanForm
+          initialData={initialData}
+          onSubmit={handleSave}
+          isLoading={saving}
+          submitLabel="Update Plan"
+        />
+      </VStack>
     </Container>
   );
 }

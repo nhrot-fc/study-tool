@@ -10,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { LuFileText, LuVideo, LuBook, LuExternalLink } from "react-icons/lu";
 import type { Resource, ResourceType } from "../../lib/types";
+import { useAuth } from "@/hooks/use-auth";
 
 const ResourceIcon = ({ type }: { type: ResourceType }) => {
   switch (type) {
@@ -28,6 +29,7 @@ interface ResourceItemProps {
 }
 
 export const ResourceItem = ({ resource, onToggle }: ResourceItemProps) => {
+  const { user } = useAuth();
   return (
     <HStack
       p={2}
@@ -41,7 +43,7 @@ export const ResourceItem = ({ resource, onToggle }: ResourceItemProps) => {
         bg: resource.status === "completed" ? "green.900/20" : undefined,
       }}
     >
-      {onToggle && (
+      {user && onToggle && (
         <Checkbox.Root
           checked={resource.status === "completed"}
           onCheckedChange={onToggle}

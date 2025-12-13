@@ -27,10 +27,7 @@ const UserPlans = () => {
   useEffect(() => {
     if (userId) {
       setLoading(true);
-      Promise.all([
-        apiClient.getStudyPlans(userId),
-        apiClient.getUser(userId),
-      ])
+      Promise.all([apiClient.getStudyPlans(userId), apiClient.getUser(userId)])
         .then(([plansData, userData]) => {
           setPlans(plansData);
           setUsername(userData.username);
@@ -76,16 +73,28 @@ const UserPlans = () => {
               <Card.Root
                 key={plan.id}
                 variant="elevated"
-                _hover={{ transform: "translateY(-2px)", transition: "all 0.2s" }}
+                _hover={{
+                  transform: "translateY(-2px)",
+                  transition: "all 0.2s",
+                }}
               >
                 <Card.Body>
                   <Stack gap={3}>
                     <RouterLink to={`/plans/${plan.id}`}>
-                      <Heading size="md" truncate _hover={{ color: "teal.500" }}>
+                      <Heading
+                        size="md"
+                        truncate
+                        _hover={{ color: "teal.500" }}
+                      >
                         {plan.title}
                       </Heading>
                     </RouterLink>
-                    <Text color="gray.600" _dark={{ color: "gray.400" }} lineClamp={2} fontSize="sm">
+                    <Text
+                      color="gray.600"
+                      _dark={{ color: "gray.400" }}
+                      lineClamp={2}
+                      fontSize="sm"
+                    >
                       {plan.description}
                     </Text>
                     <HStack color="gray.500" fontSize="xs" mt={2}>
@@ -102,7 +111,10 @@ const UserPlans = () => {
                   </Stack>
                 </Card.Body>
                 <Card.Footer pt={0}>
-                  <RouterLink to={`/plans/${plan.id}`} style={{ width: "100%" }}>
+                  <RouterLink
+                    to={`/plans/${plan.id}`}
+                    style={{ width: "100%" }}
+                  >
                     <Button variant="ghost" size="sm" width="full">
                       View Plan
                     </Button>

@@ -45,6 +45,7 @@ interface StudyPlanFormProps {
   }) => void;
   isLoading?: boolean;
   submitLabel?: string;
+  headerActions?: React.ReactNode;
 }
 
 const RESOURCE_TYPES: { value: ResourceType; label: string; icon: IconType }[] =
@@ -299,6 +300,7 @@ export const StudyPlanForm = ({
   onSubmit,
   isLoading,
   submitLabel = "Save Plan",
+  headerActions,
 }: StudyPlanFormProps) => {
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(
@@ -348,75 +350,67 @@ export const StudyPlanForm = ({
   };
 
   return (
-    <VStack align="stretch" gap={6} w="full" maxW="4xl" mx="auto">
+    <VStack align="stretch" gap={6} w="full">
       <Card.Root>
-        <Card.Header>
-          <Heading size="md">Study Plan Details</Heading>
-        </Card.Header>
         <Card.Body>
-          <VStack gap={4} align="stretch">
-            <Box>
-              <Text mb={1} fontWeight="medium">
-                Title
-              </Text>
+          <HStack justify="space-between" align="start" gap={4}>
+            <VStack gap={4} align="stretch" flex={1}>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., Python Mastery"
+                placeholder="Study Plan Title"
+                size="xl"
+                variant="flushed"
+                fontWeight="bold"
               />
-            </Box>
-            <Box>
-              <Text mb={1} fontWeight="medium">
-                Description
-              </Text>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="What is this study plan about?"
-                rows={3}
+                placeholder="Add a description..."
+                variant="flushed"
+                rows={2}
+                resize="vertical"
               />
-            </Box>
-          </VStack>
-        </Card.Body>
-      </Card.Root>
-
-      <Card.Root>
-        <Card.Header>
-          <HStack justify="space-between">
-            <Heading size="sm">Plan Structure</Heading>
-            <Button size="sm" onClick={addSection}>
-              <LuPlus /> Add Section
-            </Button>
+            </VStack>
+            <HStack gap={2}>
+              {headerActions}
+              <Button
+                size="sm"
+                colorPalette="blue"
+                onClick={handleSubmit}
+                loading={isLoading}
+              >
+                {submitLabel}
+              </Button>
+            </HStack>
           </HStack>
-        </Card.Header>
-        <Card.Body>
-          <VStack align="stretch" gap={4}>
-            {sections.length === 0 ? (
-              <Text color="gray.500" textAlign="center" py={4}>
-                No sections added yet. Start by adding a section.
-              </Text>
-            ) : (
-              sections.map((section, index) => (
-                <SectionEditor
-                  key={index}
-                  section={section}
-                  onChange={(updated) => updateSection(index, updated)}
-                  onDelete={() => deleteSection(index)}
-                />
-              ))
-            )}
-          </VStack>
         </Card.Body>
       </Card.Root>
 
-      <Button
-        size="lg"
-        colorPalette="blue"
-        onClick={handleSubmit}
-        loading={isLoading}
-      >
-        {submitLabel}
-      </Button>
+      <Box>
+        <HStack justify="space-between" mb={4}>
+          <Heading size="lg">Curriculum</Heading>
+          <Button size="sm" variant="outline" onClick={addSection}>
+            <LuPlus /> Add Section
+          </Button>
+        </HStack>
+        <VStack align="stretch" gap={4}>
+          {sections.length === 0 ? (
+            <Text color="gray.500" textAlign="center" py={4}>
+              No sections added yet. Start by adding a section.
+            </Text>
+          ) : (
+            sections.map((section, index) => (
+              <SectionEditor
+                key={index}
+                section={section}
+                onChange={(updated) => updateSection(index, updated)}
+                onDelete={() => deleteSection(index)}
+              />
+            ))
+          )}
+        </VStack>
+      </Box>
     </VStack>
   );
 };

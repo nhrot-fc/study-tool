@@ -35,10 +35,10 @@ const Home = () => {
   }, [user?.id]);
 
   return (
-    <Container maxW="6xl" py={10}>
+    <Container maxW="6xl" py={8}>
       <Stack gap={8}>
         <HStack justify="space-between" align="center">
-          <Heading size="2xl">My Study Plans</Heading>
+          <Heading size="2xl">Home</Heading>
           <RouterLink to="/plans/new">
             <Button colorPalette="teal">
               <LuPlus /> Create New Plan
@@ -78,16 +78,28 @@ const Home = () => {
               <Card.Root
                 key={plan.id}
                 variant="elevated"
-                _hover={{ transform: "translateY(-2px)", transition: "all 0.2s" }}
+                _hover={{
+                  transform: "translateY(-2px)",
+                  transition: "all 0.2s",
+                }}
               >
                 <Card.Body>
                   <Stack gap={3}>
                     <RouterLink to={`/plans/${plan.id}`}>
-                      <Heading size="md" truncate _hover={{ color: "teal.500" }}>
+                      <Heading
+                        size="md"
+                        truncate
+                        _hover={{ color: "teal.500" }}
+                      >
                         {plan.title}
                       </Heading>
                     </RouterLink>
-                    <Text color="gray.600" _dark={{ color: "gray.400" }} lineClamp={2} fontSize="sm">
+                    <Text
+                      color="gray.600"
+                      _dark={{ color: "gray.400" }}
+                      lineClamp={2}
+                      fontSize="sm"
+                    >
                       {plan.description}
                     </Text>
                     <HStack color="gray.500" fontSize="xs" mt={2}>
@@ -104,7 +116,10 @@ const Home = () => {
                   </Stack>
                 </Card.Body>
                 <Card.Footer pt={0}>
-                  <RouterLink to={`/plans/${plan.id}`} style={{ width: "100%" }}>
+                  <RouterLink
+                    to={`/plans/${plan.id}`}
+                    style={{ width: "100%" }}
+                  >
                     <Button variant="ghost" size="sm" width="full">
                       View Plan
                     </Button>

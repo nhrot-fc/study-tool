@@ -8,7 +8,6 @@ import {
   Textarea,
   VStack,
   Text,
-  Card,
   HStack,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +15,8 @@ import { apiClient } from "../lib/api";
 import { StudyPlanForm } from "../components/plans/StudyPlanForm";
 import { useAuth } from "../hooks/use-auth";
 import { type StudyPlanProposal } from "../lib/types";
-import { LuSparkles } from "react-icons/lu";
+import { LuSparkles, LuArrowLeft } from "react-icons/lu";
+import { Popover } from "../components/ui/popover";
 
 export default function PlanCreate() {
   const navigate = useNavigate();
@@ -24,7 +24,13 @@ export default function PlanCreate() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [topic, setTopic] = useState("");
   const [message, setMessage] = useState("");
-  const [proposal, setProposal] = useState<StudyPlanProposal | null>(null);
+  const [proposal, setProposal] = useState<StudyPlanProposal>({
+    title: "",
+    description: "",
+    sections: [],
+    resources: [],
+  });
+  const [formKey, setFormKey] = useState(0);
 
   const handleGenerate = async () => {
     if (!topic || !message) return;
@@ -33,12 +39,12 @@ export default function PlanCreate() {
       const result = await apiClient.generatePlanWithAI({
         topic,
         message,
-        proposal: proposal || undefined,
+        proposal,
       });
       setProposal(result);
+      setFormKey((prev) => prev + 1);
     } catch (error) {
       console.error("Error generating plan:", error);
-      // You might want to add a toast here
     } finally {
       setIsGenerating(false);
     }
@@ -49,7 +55,7 @@ export default function PlanCreate() {
     try {
       const planData = {
         ...data,
-        resources: proposal?.resources || [], // Preserve top-level resources if any
+        resources: proposal.resources || [],
         user_id: user.id,
       };
       const newPlan = await apiClient.createStudyPlan(planData);
@@ -59,81 +65,70 @@ export default function PlanCreate() {
     }
   };
 
-  if (proposal) {
-    return (
-      <Container maxW="container.xl" py={8}>
-        <Button variant="ghost" mb={4} onClick={() => setProposal(null)}>
-          Back to Generator
-        </Button>
-        <StudyPlanForm initialData={proposal} onSubmit={handleSave} />
-      </Container>
-    );
-  }
-
   return (
-    <Container maxW="container.md" py={12}>
-      <VStack gap={8} align="stretch">
-        <Heading textAlign="center">Create New Study Plan</Heading>
-
-        <Card.Root>
-          <Card.Header>
-            <HStack gap={2}>
-              <LuSparkles />
-              <Heading size="sm">Generate with AI</Heading>
-            </HStack>
-          </Card.Header>
-          <Card.Body>
-            <VStack gap={4} align="stretch">
-              <Box>
-                <Text mb={1} fontWeight="medium">
-                  Topic
-                </Text>
-                <Input
-                  placeholder="e.g. React, Python, Machine Learning"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                />
-              </Box>
-              <Box>
-                <Text mb={1} fontWeight="medium">
-                  Goals & Details
-                </Text>
-                <Textarea
-                  placeholder="Describe what you want to learn, your current level, time availability..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={4}
-                />
-              </Box>
-              <Button
-                colorPalette="blue"
-                onClick={handleGenerate}
-                loading={isGenerating}
-                disabled={!topic || !message}
-              >
-                Generate Plan
-              </Button>
-            </VStack>
-          </Card.Body>
-        </Card.Root>
-
-        <HStack justify="center">
-          <Text color="gray.500">or</Text>
+    <Container maxW="container.xl">
+      <Button variant="ghost" mb={6} onClick={() => navigate("/")}>
+        <HStack gap={2}>
+          <LuArrowLeft />
+          <Text>Back</Text>
         </HStack>
+      </Button>
 
-        <Button
-          variant="outline"
-          onClick={() =>
-            setProposal({
-              title: "",
-              description: "",
-              sections: [],
-              resources: [],
-            })
+      <VStack gap={8} align="stretch">
+        <StudyPlanForm
+          key={formKey}
+          initialData={proposal}
+          onSubmit={handleSave}
+          headerActions={
+            <Popover.Root positioning={{ placement: "bottom-end" }}>
+              <Popover.Trigger asChild>
+                <Button variant="outline" size="sm">
+                  <LuSparkles /> Generate with AI
+                </Button>
+              </Popover.Trigger>
+              <Popover.Content width="320px">
+                <Popover.Arrow />
+                <Popover.Body>
+                  <VStack gap={4} align="stretch">
+                    <Heading size="sm">AI Assistant</Heading>
+                    <Box>
+                      <Text mb={1} fontSize="sm" fontWeight="medium">
+                        Topic
+                      </Text>
+                      <Input
+                        size="sm"
+                        placeholder="e.g. React, Python"
+                        value={topic}
+                        onChange={(e) => setTopic(e.target.value)}
+                      />
+                    </Box>
+                    <Box>
+                      <Text mb={1} fontSize="sm" fontWeight="medium">
+                        Goals & Details
+                      </Text>
+                      <Textarea
+                        size="sm"
+                        placeholder="Describe what you want to learn..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        rows={3}
+                      />
+                    </Box>
+                    <Button
+                      size="sm"
+                      colorPalette="blue"
+                      onClick={handleGenerate}
+                      loading={isGenerating}
+                      disabled={!topic || !message}
+                    >
+                      Generate Suggestion
+                    </Button>
+                  </VStack>
+                </Popover.Body>
+              </Popover.Content>
+            </Popover.Root>
           }
-        >
-          Create Manually
-        </Button>
+        />
       </VStack>
     </Container>
   );
