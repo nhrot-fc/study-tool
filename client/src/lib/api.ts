@@ -9,6 +9,7 @@ import type {
   GeneratePlanRequest,
   StudyPlanProposal,
   StudyPlanCreate,
+  StudyPlanUpdate,
   ResourceProgress,
   StatusUpdate,
 } from "./types";
@@ -152,6 +153,16 @@ class APIClient {
   async createStudyPlan(plan: StudyPlanCreate): Promise<StudyPlan> {
     return this.request<StudyPlan>("/plan", {
       method: "POST",
+      body: JSON.stringify(plan),
+    });
+  }
+
+  async updateStudyPlan(
+    id: string,
+    plan: StudyPlanUpdate,
+  ): Promise<StudyPlan> {
+    return this.request<StudyPlan>(`/plan/${id}`, {
+      method: "PUT",
       body: JSON.stringify(plan),
     });
   }

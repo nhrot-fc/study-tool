@@ -137,3 +137,22 @@ export interface GeneratePlanRequest {
 export interface StatusUpdate {
   status: CompletionStatus;
 }
+
+export interface ResourceUpsert extends ResourceCreate {
+  id?: string | null;
+}
+
+export interface SectionUpsert {
+  id?: string | null;
+  title: string;
+  description?: string | null;
+  order: number;
+  resources: ResourceUpsert[];
+  children: SectionUpsert[];
+}
+
+export interface StudyPlanUpdate {
+  title?: string | null;
+  description?: string | null;
+  sections?: SectionUpsert[] | null;
+}
