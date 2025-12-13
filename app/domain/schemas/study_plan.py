@@ -30,6 +30,7 @@ class StudyPlanUpdate(BaseModel):
 
 class StudyPlanRead(StudyPlanBase):
     id: UUID
+    user_id: UUID
     created_at: datetime
     updated_at: datetime
     forked_from_id: UUID | None = None

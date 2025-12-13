@@ -191,6 +191,10 @@ class APIClient {
     );
   }
 
+  async getUser(userId: string): Promise<User> {
+    return this.request<User>(`/users/${userId}`);
+  }
+
   async forkPlan(planId: string): Promise<StudyPlan> {
     return this.request<StudyPlan>(`/plan/${planId}/fork`, {
       method: "POST",

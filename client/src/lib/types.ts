@@ -99,6 +99,7 @@ export interface StudyPlanProgress {
 
 export interface StudyPlanBase {
   id: string;
+  user_id: string;
   title: string;
   description: string;
   created_at: string;

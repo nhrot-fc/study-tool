@@ -6,6 +6,8 @@ import Settings from "./pages/Settings";
 import Landing from "./pages/Landing";
 import PlanCreate from "./pages/PlanCreate";
 import PlanDetail from "./pages/PlanDetail";
+import PlanEdit from "./pages/PlanEdit";
+import UserPlans from "./pages/UserPlans";
 import { useAuth } from "./hooks/use-auth";
 import { Center, Spinner } from "@chakra-ui/react";
 
@@ -29,6 +31,8 @@ const App = () => {
           <Route path="settings" element={<Settings />} />
           <Route path="plans/new" element={<PlanCreate />} />
           <Route path="plans/:id" element={<PlanDetail />} />
+          <Route path="plans/:id/edit" element={<PlanEdit />} />
+          <Route path="users/:userId" element={<UserPlans />} />
         </Route>
       </Routes>
     </BrowserRouter>

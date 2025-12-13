@@ -26,24 +26,25 @@ import {
   LuVideo,
 } from "react-icons/lu";
 import {
-  type SectionCreate,
-  type ResourceCreate,
+  type SectionUpsert,
+  type ResourceUpsert,
   type ResourceType,
 } from "../../lib/types";
 import type { IconType } from "react-icons";
 
-interface CreateStudyPlanProps {
+interface StudyPlanFormProps {
   initialData?: {
     title: string;
     description: string;
-    sections: SectionCreate[];
+    sections: SectionUpsert[];
   };
   onSubmit: (data: {
     title: string;
     description: string;
-    sections: SectionCreate[];
+    sections: SectionUpsert[];
   }) => void;
   isLoading?: boolean;
+  submitLabel?: string;
 }
 
 const RESOURCE_TYPES: { value: ResourceType; label: string; icon: IconType }[] =
@@ -65,8 +66,8 @@ const ResourceEditor = ({
   onChange,
   onDelete,
 }: {
-  resource: ResourceCreate;
-  onChange: (resource: ResourceCreate) => void;
+  resource: ResourceUpsert;
+  onChange: (resource: ResourceUpsert) => void;
   onDelete: () => void;
 }) => {
   return (
@@ -137,19 +138,19 @@ const SectionEditor = ({
   onDelete,
   depth = 0,
 }: {
-  section: SectionCreate;
-  onChange: (section: SectionCreate) => void;
+  section: SectionUpsert;
+  onChange: (section: SectionUpsert) => void;
   onDelete: () => void;
   depth?: number;
 }) => {
   const [isOpen, setIsOpen] = useState(true);
 
-  const handleUpdate = (updates: Partial<SectionCreate>) => {
+  const handleUpdate = (updates: Partial<SectionUpsert>) => {
     onChange({ ...section, ...updates });
   };
 
   const addResource = () => {
-    const newResource: ResourceCreate = {
+    const newResource: ResourceUpsert = {
       title: "",
       url: "",
       type: "article",
@@ -158,7 +159,7 @@ const SectionEditor = ({
     handleUpdate({ resources: [...section.resources, newResource] });
   };
 
-  const updateResource = (index: number, updated: ResourceCreate) => {
+  const updateResource = (index: number, updated: ResourceUpsert) => {
     const newResources = [...section.resources];
     newResources[index] = updated;
     handleUpdate({ resources: newResources });
@@ -171,7 +172,7 @@ const SectionEditor = ({
   };
 
   const addChildSection = () => {
-    const newSection: SectionCreate = {
+    const newSection: SectionUpsert = {
       title: "",
       description: "",
       order: section.children.length,
@@ -181,7 +182,7 @@ const SectionEditor = ({
     handleUpdate({ children: [...section.children, newSection] });
   };
 
-  const updateChildSection = (index: number, updated: SectionCreate) => {
+  const updateChildSection = (index: number, updated: SectionUpsert) => {
     const newChildren = [...section.children];
     newChildren[index] = updated;
     handleUpdate({ children: newChildren });
@@ -293,16 +294,17 @@ const SectionEditor = ({
   );
 };
 
-export const CreateStudyPlan = ({
+export const StudyPlanForm = ({
   initialData,
   onSubmit,
   isLoading,
-}: CreateStudyPlanProps) => {
+  submitLabel = "Save Plan",
+}: StudyPlanFormProps) => {
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(
     initialData?.description || "",
   );
-  const [sections, setSections] = useState<SectionCreate[]>(
+  const [sections, setSections] = useState<SectionUpsert[]>(
     initialData?.sections || [],
   );
 
@@ -319,7 +321,7 @@ export const CreateStudyPlan = ({
     ]);
   };
 
-  const updateSection = (index: number, updated: SectionCreate) => {
+  const updateSection = (index: number, updated: SectionUpsert) => {
     const newSections = [...sections];
     newSections[index] = updated;
     setSections(newSections);
@@ -329,7 +331,7 @@ export const CreateStudyPlan = ({
     setSections(sections.filter((_, i) => i !== index));
   };
 
-  const reindexSections = (sections: SectionCreate[]): SectionCreate[] => {
+  const reindexSections = (sections: SectionUpsert[]): SectionUpsert[] => {
     return sections.map((section, index) => ({
       ...section,
       order: index,
@@ -349,7 +351,7 @@ export const CreateStudyPlan = ({
     <VStack align="stretch" gap={6} w="full" maxW="4xl" mx="auto">
       <Card.Root>
         <Card.Header>
-          <Heading size="md">Create Study Plan</Heading>
+          <Heading size="md">Study Plan Details</Heading>
         </Card.Header>
         <Card.Body>
           <VStack gap={4} align="stretch">
@@ -413,7 +415,7 @@ export const CreateStudyPlan = ({
         onClick={handleSubmit}
         loading={isLoading}
       >
-        Create Plan
+        {submitLabel}
       </Button>
     </VStack>
   );

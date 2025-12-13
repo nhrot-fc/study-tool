@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../lib/api";
-import { CreateStudyPlan } from "../components/plans/CreateStudyPlan";
+import { StudyPlanForm } from "../components/plans/StudyPlanForm";
 import { useAuth } from "../hooks/use-auth";
 import { type StudyPlanProposal } from "../lib/types";
 import { LuSparkles } from "react-icons/lu";
@@ -65,7 +65,7 @@ export default function PlanCreate() {
         <Button variant="ghost" mb={4} onClick={() => setProposal(null)}>
           Back to Generator
         </Button>
-        <CreateStudyPlan initialData={proposal} onSubmit={handleSave} />
+        <StudyPlanForm initialData={proposal} onSubmit={handleSave} />
       </Container>
     );
   }

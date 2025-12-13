@@ -13,13 +13,16 @@ import {
   Progress,
 } from "@chakra-ui/react";
 import { useStudyPlan } from "../hooks/use-study-plan";
+import { useAuth } from "../hooks/use-auth";
 import { StudyPlanTree } from "../components/plans/StudyPlanTree";
 import { ResourceItem } from "../components/resources/ResourceItem";
 import { LuArrowLeft, LuCopy } from "react-icons/lu";
+import { MdEdit } from "react-icons/md";
 
 export default function PlanDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { plan, loading, error, forkPlan, toggleResourceStatus } = useStudyPlan(
     id || "",
   );
@@ -81,13 +84,24 @@ export default function PlanDetail() {
                   </Box>
                 )}
               </VStack>
-              <Button
-                variant="outline"
-                onClick={forkPlan}
-                title="Fork this plan"
-              >
-                <LuCopy /> Fork
-              </Button>
+              <HStack>
+                {user && plan.user_id === user.id && (
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(`/plans/${id}/edit`)}
+                    title="Edit this plan"
+                  >
+                    <MdEdit /> Edit
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={forkPlan}
+                  title="Fork this plan"
+                >
+                  <LuCopy /> Fork
+                </Button>
+              </HStack>
             </HStack>
           </Card.Body>
         </Card.Root>
