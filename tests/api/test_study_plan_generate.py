@@ -61,7 +61,7 @@ async def test_generate_study_plan(client: AsyncClient, user_service: UserServic
     }
 
     response = await client.post(
-        "/api/v1/study-plans/generate", json=generate_data, headers=headers
+        "/api/v1/plan/generate", json=generate_data, headers=headers
     )
 
     assert response.status_code == 200
@@ -110,7 +110,7 @@ async def test_generate_study_plan_refine(
     }
 
     response = await client.post(
-        "/api/v1/study-plans/generate", json=generate_data, headers=headers
+        "/api/v1/plan/generate", json=generate_data, headers=headers
     )
 
     assert response.status_code == 200

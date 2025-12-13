@@ -1,13 +1,15 @@
 from typing import Any, TypeVar
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, col
 
-ModelType = TypeVar("ModelType", bound=SQLModel)
+from app.persistence.model.base import BaseEntity
+
+ModelType = TypeVar("ModelType", bound=BaseEntity)
 
 
-class BaseRepository[ModelType: SQLModel]:
+class BaseRepository[ModelType: BaseEntity]:
     def __init__(self, session: AsyncSession, model: type[ModelType]):
         self.session = session
         self.model = model
@@ -65,3 +67,13 @@ class BaseRepository[ModelType: SQLModel]:
             await self.session.commit()
             return True
         return False
+
+    async def delete_by_ids(self, ids: list[Any]) -> None:
+        """
+        Deletes multiple records by their IDs.
+        """
+        if not ids:
+            return
+        statement = delete(self.model).where(col(self.model.id).in_(ids))
+        await self.session.execute(statement)
+        await self.session.commit()

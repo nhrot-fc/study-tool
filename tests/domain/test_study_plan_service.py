@@ -3,10 +3,11 @@ from uuid import uuid4
 import pytest
 
 from app.domain.enums import ResourceType
-from app.domain.schemas.resource import ResourceCreate
-from app.domain.schemas.section import SectionCreate
-from app.domain.schemas.study_plan import StudyPlanCreate
+from app.domain.schemas.resource import ResourceCreate, ResourceUpsert
+from app.domain.schemas.section import SectionCreate, SectionUpsert
+from app.domain.schemas.study_plan import StudyPlanCreate, StudyPlanUpdate
 from app.domain.schemas.user import UserCreate
+from app.domain.services.progress import ProgressService
 from app.domain.services.study_plan import StudyPlanService
 from app.domain.services.user import UserService
 
@@ -227,3 +228,78 @@ async def test_create_study_plan_max_depth(study_plan_service: StudyPlanService,
         s = s.children[0]
         depth += 1
     assert depth == 5
+
+
+@pytest.mark.asyncio
+async def test_update_study_plan(
+    study_plan_service: StudyPlanService,
+    progress_service: ProgressService,
+    user,
+):
+    # 1. Create initial plan
+    plan_in = StudyPlanCreate(
+        title="Original Plan",
+        description="Original Desc",
+        user_id=user.id,
+        sections=[
+            SectionCreate(
+                title="S1",
+                resources=[
+                    ResourceCreate(title="R1", url="http://r1", type=ResourceType.ARTICLE)
+                ],
+            )
+        ],
+    )
+    plan = await study_plan_service.create_study_plan(plan_in)
+    
+    # Initialize progress
+    await progress_service.initialize_study_plan_progress(user.id, plan.id)
+
+    # 2. Update Plan
+    # Change title, modify S1 (change title), add S2
+    s1_id = plan.sections[0].id
+    r1_id = plan.sections[0].resources[0].id
+    
+    update_in = StudyPlanUpdate(
+        title="Updated Plan",
+        sections=[
+            SectionUpsert(
+                id=s1_id,
+                title="S1 Updated",
+                resources=[
+                    ResourceUpsert(
+                        id=r1_id,
+                        title="R1",
+                        url="http://r1",
+                        type=ResourceType.ARTICLE
+                    )
+                ]
+            ),
+            SectionUpsert(
+                title="S2",
+                resources=[
+                    ResourceUpsert(
+                        title="R2",
+                        url="http://r2",
+                        type=ResourceType.VIDEO
+                    )
+                ]
+            )
+        ]
+    )
+
+    updated_plan = await study_plan_service.update_study_plan(
+        plan.id, update_in, progress_service
+    )
+
+    assert updated_plan.title == "Updated Plan"
+    assert len(updated_plan.sections) == 2
+    
+    s1 = next(s for s in updated_plan.sections if s.id == s1_id)
+    assert s1.title == "S1 Updated"
+    
+    s2 = next(s for s in updated_plan.sections if s.id != s1_id)
+    assert s2.title == "S2"
+    assert len(s2.resources) == 1
+    assert s2.resources[0].title == "R2"
+

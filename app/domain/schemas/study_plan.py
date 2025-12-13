@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict
 
 from app.domain.schemas.progress import StudyPlanProgressRead
 from app.domain.schemas.resource import ResourceCreate, ResourceRead
-from app.domain.schemas.section import SectionCreate, SectionRead
+from app.domain.schemas.section import SectionCreate, SectionRead, SectionUpsert
 
 
 class StudyPlanBase(BaseModel):
@@ -20,6 +20,12 @@ class StudyPlanProposal(StudyPlanBase):
 
 class StudyPlanCreate(StudyPlanProposal):
     user_id: UUID
+
+
+class StudyPlanUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    sections: list[SectionUpsert] | None = None
 
 
 class StudyPlanRead(StudyPlanBase):

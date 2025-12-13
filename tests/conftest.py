@@ -8,9 +8,12 @@ from sqlmodel import SQLModel
 from app.core.config import get_settings
 from app.core.database import get_session
 from app.domain.services.auth import AuthService
+from app.domain.services.progress import ProgressService
 from app.domain.services.study_plan import StudyPlanService
 from app.domain.services.user import UserService
 from app.main import app
+from app.persistence.repository.progress import ProgressRepository
+from app.persistence.repository.section import SectionRepository
 from app.persistence.repository.study_plan import StudyPlanRepository
 from app.persistence.repository.token import RefreshTokenRepository
 from app.persistence.repository.user import UserRepository
@@ -75,6 +78,27 @@ def auth_service(
 @pytest.fixture
 def study_plan_repository(session: AsyncSession) -> StudyPlanRepository:
     return StudyPlanRepository(session)
+
+
+@pytest.fixture
+def section_repository(session: AsyncSession) -> SectionRepository:
+    return SectionRepository(session)
+
+
+@pytest.fixture
+def progress_repository(session: AsyncSession) -> ProgressRepository:
+    return ProgressRepository(session)
+
+
+@pytest.fixture
+def progress_service(
+    progress_repository: ProgressRepository,
+    study_plan_repository: StudyPlanRepository,
+    section_repository: SectionRepository,
+) -> ProgressService:
+    return ProgressService(
+        progress_repository, study_plan_repository, section_repository
+    )
 
 
 @pytest.fixture

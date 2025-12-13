@@ -17,6 +17,10 @@ class ResourceCreate(ResourceBase):
     pass
 
 
+class ResourceUpsert(ResourceCreate):
+    id: UUID | None = None
+
+
 class ResourceRead(ResourceBase):
     id: UUID
     model_config = ConfigDict(from_attributes=True)

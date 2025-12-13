@@ -58,7 +58,7 @@ async def test_api_complex_progress_updates(
     }
 
     create_res = await client.post(
-        "/api/v1/study-plans/", json=plan_data, headers=headers
+        "/api/v1/plan/", json=plan_data, headers=headers
     )
     assert create_res.status_code == 201
     plan_id = create_res.json()["id"]
@@ -83,7 +83,7 @@ async def test_api_complex_progress_updates(
     assert r2_id is not None
     assert r3_id is not None
     # 3. Get Plan (Initializes Progress)
-    get_res = await client.get(f"/api/v1/study-plans/{plan_id}", headers=headers)
+    get_res = await client.get(f"/api/v1/plan/{plan_id}", headers=headers)
     assert get_res.status_code == 200
     data = get_res.json()
     assert data["progress"] is not None
@@ -92,14 +92,14 @@ async def test_api_complex_progress_updates(
     # 4. Complete R3 (Deepest)
     status_update = {"status": "completed"}
     update_res = await client.post(
-        f"/api/v1/progress/study-plans/{plan_id}/sections/{s3_id}/resources/{r3_id}/status",
+        f"/api/v1/progress/plan/{plan_id}/sections/{s3_id}/resources/{r3_id}/status",
         json=status_update,
         headers=headers,
     )
     assert update_res.status_code == 200
 
     # 5. Verify Progress via Get Plan
-    get_res = await client.get(f"/api/v1/study-plans/{plan_id}", headers=headers)
+    get_res = await client.get(f"/api/v1/plan/{plan_id}", headers=headers)
     data = get_res.json()
 
     # Plan Progress: S1 (0.25) -> Plan (0.25)
@@ -158,19 +158,19 @@ async def test_api_get_plan_authenticated_vs_anonymous(
         "resources": [],
     }
     create_res = await client.post(
-        "/api/v1/study-plans/", json=plan_data, headers=headers
+        "/api/v1/plan/", json=plan_data, headers=headers
     )
     plan_id = create_res.json()["id"]
 
     # 3. Get Plan as Anonymous (No Auth Header)
-    anon_res = await client.get(f"/api/v1/study-plans/{plan_id}")
+    anon_res = await client.get(f"/api/v1/plan/{plan_id}")
     assert anon_res.status_code == 200
     anon_data = anon_res.json()
     assert anon_data["title"] == "Public Plan"
     assert anon_data["progress"] is None
 
     # 4. Get Plan as Authenticated User (Owner)
-    auth_res = await client.get(f"/api/v1/study-plans/{plan_id}", headers=headers)
+    auth_res = await client.get(f"/api/v1/plan/{plan_id}", headers=headers)
     assert auth_res.status_code == 200
     auth_data = auth_res.json()
     assert auth_data["title"] == "Public Plan"
@@ -191,7 +191,7 @@ async def test_api_get_plan_authenticated_vs_anonymous(
     headers_other = {"Authorization": f"Bearer {token_other}"}
 
     other_res = await client.get(
-        f"/api/v1/study-plans/{plan_id}", headers=headers_other
+        f"/api/v1/plan/{plan_id}", headers=headers_other
     )
     assert other_res.status_code == 200
     other_data = other_res.json()

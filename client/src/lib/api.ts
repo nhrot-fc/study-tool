@@ -142,15 +142,15 @@ class APIClient {
   }
 
   async getStudyPlans(userId: string): Promise<StudyPlanSummary[]> {
-    return this.request<StudyPlanSummary[]>(`/study-plans/user/${userId}`);
+    return this.request<StudyPlanSummary[]>(`/plan/user/${userId}`);
   }
 
   async getStudyPlan(id: string): Promise<StudyPlanWithProgress> {
-    return this.request<StudyPlanWithProgress>(`/study-plans/${id}`);
+    return this.request<StudyPlanWithProgress>(`/plan/${id}`);
   }
 
   async createStudyPlan(plan: StudyPlanCreate): Promise<StudyPlan> {
-    return this.request<StudyPlan>("/study-plans", {
+    return this.request<StudyPlan>("/plan", {
       method: "POST",
       body: JSON.stringify(plan),
     });
@@ -159,7 +159,7 @@ class APIClient {
   async generatePlanWithAI(
     request: GeneratePlanRequest,
   ): Promise<StudyPlanProposal> {
-    return this.request<StudyPlanProposal>("/study-plans/generate", {
+    return this.request<StudyPlanProposal>("/plan/generate", {
       method: "POST",
       body: JSON.stringify(request),
     });
@@ -168,7 +168,7 @@ class APIClient {
   async refinePlanWithAI(
     request: GeneratePlanRequest,
   ): Promise<StudyPlanProposal> {
-    return this.request<StudyPlanProposal>("/study-plans/generate", {
+    return this.request<StudyPlanProposal>("/plan/generate", {
       method: "POST",
       body: JSON.stringify(request),
     });
@@ -181,7 +181,7 @@ class APIClient {
   }
 
   async forkPlan(planId: string): Promise<StudyPlan> {
-    return this.request<StudyPlan>(`/study-plans/${planId}/fork`, {
+    return this.request<StudyPlan>(`/plan/${planId}/fork`, {
       method: "POST",
     });
   }
@@ -193,7 +193,7 @@ class APIClient {
     status: StatusUpdate["status"],
   ): Promise<ResourceProgress> {
     return this.request<ResourceProgress>(
-      `/progress/study-plans/${studyPlanId}/sections/${sectionId}/resources/${resourceId}/status`,
+      `/progress/plan/${studyPlanId}/sections/${sectionId}/resources/${resourceId}/status`,
       {
         method: "POST",
         body: JSON.stringify({ status }),

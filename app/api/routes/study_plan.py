@@ -20,6 +20,7 @@ from app.domain.schemas.study_plan import (
     StudyPlanRead,
     StudyPlanReadDetail,
     StudyPlanReadDetailWithProgress,
+    StudyPlanUpdate,
 )
 from app.domain.services.gemini import GeminiService
 from app.domain.services.progress import ProgressService
@@ -108,6 +109,29 @@ async def get_study_plan(
 
     detail = StudyPlanReadDetail.model_validate(plan)
     return StudyPlanReadDetailWithProgress(**detail.model_dump(), progress=progress)
+
+
+@router.put("/{plan_id}", response_model=StudyPlanReadDetail)
+async def update_study_plan(
+    plan_id: UUID,
+    plan_in: StudyPlanUpdate,
+    current_user: CurrentUser,
+    service: Annotated[StudyPlanService, Depends(get_study_plan_service)],
+    progress_service: Annotated[ProgressService, Depends(get_progress_service)],
+) -> StudyPlanReadDetail:
+    plan = await service.get_study_plan_by_id(plan_id)
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Study plan not found"
+        )
+    if plan.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot update study plan for another user",
+        )
+
+    updated_plan = await service.update_study_plan(plan_id, plan_in, progress_service)
+    return StudyPlanReadDetail.model_validate(updated_plan)
 
 
 @router.post(

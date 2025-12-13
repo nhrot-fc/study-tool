@@ -17,7 +17,7 @@ class StatusUpdate(BaseModel):
 
 
 @router.post(
-    "/study-plans/{study_plan_id}/sections/{section_id}/resources/{resource_id}/status",
+    "/plan/{study_plan_id}/sections/{section_id}/resources/{resource_id}/status",
     response_model=ResourceProgressRead,
 )
 async def update_resource_status(

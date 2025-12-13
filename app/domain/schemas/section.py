@@ -2,7 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from app.domain.schemas.resource import ResourceCreate, ResourceRead
+from app.domain.schemas.resource import ResourceCreate, ResourceRead, ResourceUpsert
 
 
 class SectionBase(BaseModel):
@@ -14,6 +14,12 @@ class SectionBase(BaseModel):
 class SectionCreate(SectionBase):
     resources: list[ResourceCreate] = []
     children: list["SectionCreate"] = []
+
+
+class SectionUpsert(SectionBase):
+    id: UUID | None = None
+    resources: list["ResourceUpsert"] = []
+    children: list["SectionUpsert"] = []
 
 
 class SectionRead(SectionBase):
