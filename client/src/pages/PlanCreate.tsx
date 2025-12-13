@@ -82,8 +82,13 @@ export default function PlanCreate() {
           headerActions={
             <Popover.Root positioning={{ placement: "bottom-end" }}>
               <Popover.Trigger asChild>
-                <Button variant="outline" size="sm">
-                  <LuSparkles /> Generate with AI
+                <Button
+                  variant="outline"
+                  size="sm"
+                  flex={{ base: 1, md: "initial" }}
+                >
+                  <LuSparkles />
+                  Generate
                 </Button>
               </Popover.Trigger>
               <Popover.Content width="320px">
@@ -121,7 +126,7 @@ export default function PlanCreate() {
                       loading={isGenerating}
                       disabled={!topic || !message}
                     >
-                      Generate Suggestion
+                      Generate
                     </Button>
                   </VStack>
                 </Popover.Body>

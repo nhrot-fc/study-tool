@@ -10,10 +10,11 @@ import {
   VStack,
   Text,
   Spinner,
+  IconButton,
 } from "@chakra-ui/react";
 import { ColorModeButton } from "./ui/color-mode";
 import { useAuth } from "../hooks/use-auth";
-import { LuSearch, LuUser } from "react-icons/lu";
+import { LuSearch, LuUser, LuMenu, LuX } from "react-icons/lu";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { LoginPopover } from "./LoginPopover";
 import { RegisterPopover } from "./RegisterPopover";
@@ -27,6 +28,7 @@ const Header = () => {
   const [results, setResults] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -214,8 +216,128 @@ const Header = () => {
             </Button>
           )}
           <ColorModeButton />
+          <IconButton
+            display={{ base: "flex", md: "none" }}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            variant="ghost"
+            size="sm"
+            aria-label="Open menu"
+          >
+            {isMobileMenuOpen ? <LuX /> : <LuMenu />}
+          </IconButton>
         </HStack>
       </Flex>
+
+      {isMobileMenuOpen && (
+        <Box pb={4} display={{ md: "none" }} mt={4}>
+          <Box position="relative" mb={4}>
+            <HStack
+              bg={{ base: "gray.100", _dark: "gray.800" }}
+              borderRadius="md"
+              px={3}
+              py={2}
+              border="1px solid"
+              borderColor={{ base: "gray.200", _dark: "gray.700" }}
+            >
+              <LuSearch color="gray" />
+              <Input
+                placeholder="Search users..."
+                variant="subtle"
+                color="inherit"
+                h="24px"
+                fontSize="sm"
+                css={{ "--input-placeholder-color": "colors.gray.500" }}
+                border="none"
+                _focus={{ outline: "none" }}
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setShowResults(true);
+                }}
+                onFocus={() => setShowResults(true)}
+              />
+              {loading && <Spinner size="xs" color="gray.500" />}
+            </HStack>
+            {showResults && query.length >= 3 && (
+              <Box
+                position="absolute"
+                top="100%"
+                left={0}
+                right={0}
+                mt={2}
+                bg={{ base: "white", _dark: "gray.800" }}
+                borderRadius="md"
+                boxShadow="lg"
+                borderWidth="1px"
+                borderColor={{ base: "gray.200", _dark: "gray.700" }}
+                zIndex={1000}
+                maxH="300px"
+                overflowY="auto"
+              >
+                {results.length === 0 && !loading ? (
+                  <Box p={3} textAlign="center">
+                    <Text fontSize="sm" color="gray.500">
+                      No users found
+                    </Text>
+                  </Box>
+                ) : (
+                  <VStack align="stretch" gap={0}>
+                    {results.map((result) => (
+                      <Button
+                        key={result.id}
+                        variant="ghost"
+                        justifyContent="start"
+                        h="auto"
+                        py={2}
+                        px={3}
+                        borderRadius={0}
+                        onClick={() => handleUserClick(result.id)}
+                      >
+                        <HStack>
+                          <Box
+                            p={1}
+                            bg="gray.100"
+                            _dark={{ bg: "gray.700" }}
+                            borderRadius="full"
+                          >
+                            <LuUser />
+                          </Box>
+                          <VStack align="start" gap={0}>
+                            <Text fontSize="sm" fontWeight="medium">
+                              {result.username}
+                            </Text>
+                            <Text fontSize="xs" color="gray.500">
+                              {result.email}
+                            </Text>
+                          </VStack>
+                        </HStack>
+                      </Button>
+                    ))}
+                  </VStack>
+                )}
+              </Box>
+            )}
+          </Box>
+
+          <VStack align="stretch" gap={2}>
+            <RouterLink to="/about" onClick={() => setIsMobileMenuOpen(false)}>
+              <Button variant="ghost" justifyContent="start" w="full">
+                About
+              </Button>
+            </RouterLink>
+            {user && (
+              <RouterLink
+                to="/plans/new"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Button variant="ghost" justifyContent="start" w="full">
+                  Create Plan
+                </Button>
+              </RouterLink>
+            )}
+          </VStack>
+        </Box>
+      )}
     </Box>
   );
 };

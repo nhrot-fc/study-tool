@@ -14,6 +14,7 @@ import {
   Separator,
   Heading,
   createListCollection,
+  Stack,
 } from "@chakra-ui/react";
 import {
   LuPlus,
@@ -299,7 +300,7 @@ export const StudyPlanForm = ({
   initialData,
   onSubmit,
   isLoading,
-  submitLabel = "Save Plan",
+  submitLabel = "Save",
   headerActions,
 }: StudyPlanFormProps) => {
   const [title, setTitle] = useState(initialData?.title || "");
@@ -353,8 +354,13 @@ export const StudyPlanForm = ({
     <VStack align="stretch" gap={6} w="full">
       <Card.Root>
         <Card.Body>
-          <HStack justify="space-between" align="start" gap={4}>
-            <VStack gap={4} align="stretch" flex={1}>
+          <Stack
+            direction={{ base: "column", md: "row" }}
+            justify="space-between"
+            align="start"
+            gap={4}
+          >
+            <VStack gap={4} align="stretch" flex={1} w="full">
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
@@ -372,18 +378,23 @@ export const StudyPlanForm = ({
                 resize="vertical"
               />
             </VStack>
-            <HStack gap={2}>
+            <HStack
+              gap={2}
+              w={{ base: "full", md: "auto" }}
+              justify={{ base: "flex-start", md: "flex-end" }}
+            >
               {headerActions}
               <Button
                 size="sm"
                 colorPalette="blue"
                 onClick={handleSubmit}
                 loading={isLoading}
+                flex={{ base: 1, md: "initial" }}
               >
                 {submitLabel}
               </Button>
             </HStack>
-          </HStack>
+          </Stack>
         </Card.Body>
       </Card.Root>
 

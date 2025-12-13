@@ -11,6 +11,7 @@ import {
   Center,
   Card,
   Progress,
+  Stack,
 } from "@chakra-ui/react";
 import { useStudyPlan } from "../hooks/use-study-plan";
 import { useAuth } from "../hooks/use-auth";
@@ -60,9 +61,15 @@ export default function PlanDetail() {
       <VStack gap={8} align="stretch">
         <Card.Root>
           <Card.Body>
-            <HStack justify="space-between" align="start" mb={4}>
-              <VStack align="start" gap={2} flex={1}>
-                <Heading size="2xl">{plan.title}</Heading>
+            <Stack
+              direction={{ base: "column", md: "row" }}
+              justify="space-between"
+              align="start"
+              mb={4}
+              gap={4}
+            >
+              <VStack align="start" gap={2} flex={1} w="full">
+                <Heading size={{ base: "xl", md: "2xl" }}>{plan.title}</Heading>
                 <Text color="gray.600" fontSize="lg">
                   {plan.description}
                 </Text>
@@ -89,11 +96,12 @@ export default function PlanDetail() {
                 )}
               </VStack>
               {user && plan.user_id === user.id && (
-                <HStack>
+                <HStack w={{ base: "full", md: "auto" }} justify="flex-start">
                   <Button
                     variant="outline"
                     onClick={() => navigate(`/plans/${id}/edit`)}
                     title="Edit this plan"
+                    flex={{ base: 1, md: "initial" }}
                   >
                     <MdEdit /> Edit
                   </Button>
@@ -102,12 +110,13 @@ export default function PlanDetail() {
                     variant="outline"
                     onClick={forkPlan}
                     title="Fork this plan"
+                    flex={{ base: 1, md: "initial" }}
                   >
                     <LuCopy /> Fork
                   </Button>
                 </HStack>
               )}
-            </HStack>
+            </Stack>
           </Card.Body>
         </Card.Root>
 
