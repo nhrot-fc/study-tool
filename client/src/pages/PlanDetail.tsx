@@ -17,8 +17,9 @@ import { useStudyPlan } from "../hooks/use-study-plan";
 import { useAuth } from "../hooks/use-auth";
 import { StudyPlanTree } from "../components/plans/StudyPlanTree";
 import { ResourceItem } from "../components/resources/ResourceItem";
-import { LuArrowLeft, LuCopy } from "react-icons/lu";
+import { LuArrowLeft, LuCopy, LuBrainCircuit, LuList } from "react-icons/lu";
 import { MdEdit } from "react-icons/md";
+import { QuizGenerateModal } from "../components/quizzes/QuizGenerateModal";
 
 export default function PlanDetail() {
   const { id } = useParams<{ id: string }>();
@@ -96,12 +97,17 @@ export default function PlanDetail() {
                 )}
               </VStack>
               {user && plan.user_id === user.id && (
-                <HStack w={{ base: "full", md: "auto" }} justify="flex-start">
+                <Stack
+                  direction={{ base: "column", sm: "row" }}
+                  w={{ base: "full", md: "auto" }}
+                  justify="flex-start"
+                  gap={2}
+                >
                   <Button
                     variant="outline"
                     onClick={() => navigate(`/plans/${id}/edit`)}
                     title="Edit this plan"
-                    flex={{ base: 1, md: "initial" }}
+                    flex={{ base: 1, sm: "initial" }}
                   >
                     <MdEdit /> Edit
                   </Button>
@@ -110,11 +116,33 @@ export default function PlanDetail() {
                     variant="outline"
                     onClick={forkPlan}
                     title="Fork this plan"
-                    flex={{ base: 1, md: "initial" }}
+                    flex={{ base: 1, sm: "initial" }}
                   >
                     <LuCopy /> Fork
                   </Button>
-                </HStack>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(`/plans/${id}/quizzes`)}
+                    title="View Quizzes"
+                    flex={{ base: 1, sm: "initial" }}
+                  >
+                    <LuList /> Quizzes
+                  </Button>
+
+                  <QuizGenerateModal
+                    planId={id || ""}
+                    trigger={
+                      <Button
+                        variant="outline"
+                        title="Generate Quiz"
+                        flex={{ base: 1, sm: "initial" }}
+                      >
+                        <LuBrainCircuit /> Take Quiz
+                      </Button>
+                    }
+                  />
+                </Stack>
               )}
             </Stack>
           </Card.Body>

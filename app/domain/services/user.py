@@ -3,6 +3,7 @@ from uuid import UUID
 from sqlmodel import col
 
 from app.core.security import hash_password
+from app.domain.exceptions.base import AlreadyExistsException
 from app.domain.schemas.user import UserCreate
 from app.persistence.model.user import User
 from app.persistence.repository.user import UserRepository
@@ -13,6 +14,11 @@ class UserService:
         self.user_repository = user_repository
 
     async def create_user(self, user_in: UserCreate) -> User:
+        if await self.get_user_by_email(user_in.email):
+            raise AlreadyExistsException(
+                f"The user with this email {user_in.email} already exists."
+            )
+
         hashed_password = hash_password(user_in.password)
         user = User(
             email=user_in.email,

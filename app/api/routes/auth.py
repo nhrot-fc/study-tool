@@ -18,12 +18,6 @@ async def register(
     user_in: RegisterRequest,
     user_service: Annotated[UserService, Depends(get_user_service)],
 ) -> UserRead:
-    user = await user_service.get_user_by_email(user_in.email)
-    if user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The user with this email already exists in the system.",
-        )
     user = await user_service.create_user(
         UserCreate(
             username=user_in.username, email=user_in.email, password=user_in.password

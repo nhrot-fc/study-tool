@@ -8,6 +8,8 @@ import PlanCreate from "./pages/PlanCreate";
 import PlanDetail from "./pages/PlanDetail";
 import PlanEdit from "./pages/PlanEdit";
 import UserPlans from "./pages/UserPlans";
+import PlanQuizzes from "./pages/PlanQuizzes";
+import QuizTake from "./pages/QuizTake";
 import { useAuth } from "./hooks/use-auth";
 import { Center, Spinner } from "@chakra-ui/react";
 
@@ -32,6 +34,8 @@ const App = () => {
           <Route path="plans/new" element={<PlanCreate />} />
           <Route path="plans/:id" element={<PlanDetail />} />
           <Route path="plans/:id/edit" element={<PlanEdit />} />
+          <Route path="plans/:id/quizzes" element={<PlanQuizzes />} />
+          <Route path="quizzes/:id" element={<QuizTake />} />
           <Route path="users/:userId" element={<UserPlans />} />
         </Route>
       </Routes>
