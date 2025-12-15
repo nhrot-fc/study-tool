@@ -65,7 +65,6 @@ class QuizRead(QuizBase):
     id: UUID
     study_plan_id: UUID
     user_id: UUID
-    session_token: str | None
     started_at: datetime | None
     completed_at: datetime | None
     score: float | None
@@ -81,13 +80,13 @@ class QuizReadPublic(QuizRead):
     questions: list[QuestionPublic]
 
 
-class QuizAnswerCreate(BaseModel):
+class QuestionUserSelectedOptions(BaseModel):
     question_id: UUID
     selected_option_id: UUID
 
 
 class QuizSubmission(BaseModel):
-    answers: list[QuizAnswerCreate]
+    answers: list[QuestionUserSelectedOptions]
 
 
 class QuizResult(QuizRead):

@@ -20,7 +20,6 @@ class Quiz(BaseEntity, table=True):
     duration_minutes: int
 
     # Attempts attributes
-    session_token: str | None = Field(index=True, default=None)
     started_at: datetime | None = Field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
     score: float | None = None

@@ -96,12 +96,11 @@ async def submit_quiz(
             quiz_id, current_user.id, submission.answers
         )
 
-        # Calculate result fields
         total_questions = len(quiz.questions)
         correct_answers = (
             int((quiz.score / 100) * total_questions) if quiz.score is not None else 0
         )
-        passed = (quiz.score or 0) >= 70  # Example threshold
+        passed = (quiz.score or 0) >= 75.0
 
         quiz_data = QuizRead.model_validate(quiz).model_dump()
         return QuizResult(

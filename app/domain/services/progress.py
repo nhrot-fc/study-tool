@@ -112,7 +112,11 @@ class ProgressService:
         await self._recalculate_section_progress(sec_progress)
         await self._recalculate_study_plan_progress(sp_progress)
 
-        await self.progress_repo.session.refresh(res_progress)
+        res_progress = await self.progress_repo.get_resource_progress(
+            user_id, resource_id
+        )
+        if not res_progress:
+            raise ValueError("Resource progress not found")
         return res_progress
 
     async def _recalculate_section_progress(

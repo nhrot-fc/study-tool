@@ -5,13 +5,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import col
 
-from app.persistence.model.quiz import Question, Quiz
+from app.persistence.model.quiz import Question, Quiz, QuizUserAnswer
 from app.persistence.repository.base import BaseRepository
 
 
 class QuizRepository(BaseRepository[Quiz]):
     def __init__(self, session: AsyncSession):
         super().__init__(session, Quiz)
+
+    async def save(self, quiz: Quiz) -> Quiz:
+        self.session.add(quiz)
+        await self.session.commit()
+        await self.session.refresh(quiz)
+        return quiz
+
+    async def save_answers(self, answers: list[QuizUserAnswer]) -> None:
+        self.session.add_all(answers)
+        await self.session.commit()
 
     async def get_by_plan_and_user(self, plan_id: UUID, user_id: UUID) -> Quiz | None:
         statement = (

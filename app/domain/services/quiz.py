@@ -1,8 +1,7 @@
-import secrets
 from datetime import UTC, datetime
 from uuid import UUID
 
-from app.domain.schemas.quiz import QuizAnswerCreate
+from app.domain.schemas.quiz import QuestionUserSelectedOptions
 from app.domain.services.gemini import GeminiService
 from app.persistence.model.quiz import Question, QuestionOption, Quiz, QuizUserAnswer
 from app.persistence.repository.quiz import QuizRepository
@@ -44,7 +43,6 @@ class QuizService:
             title=proposal.title,
             difficulty=proposal.difficulty,
             duration_minutes=proposal.duration_minutes,
-            session_token=secrets.token_urlsafe(32),
             started_at=None,
         )
 
@@ -71,55 +69,81 @@ class QuizService:
 
         if not quiz.started_at:
             quiz.started_at = datetime.now(UTC)
-            self.quiz_repo.session.add(quiz)
-            await self.quiz_repo.session.commit()
+            await self.quiz_repo.save(quiz)
 
         return quiz
 
     async def submit_answers(
-        self, quiz_id: UUID, user_id: UUID, answers: list[QuizAnswerCreate]
+        self, quiz_id: UUID, user_id: UUID, answers: list[QuestionUserSelectedOptions]
     ) -> Quiz:
         quiz = await self.quiz_repo.get_with_questions(quiz_id)
+        self._validate_submission(quiz, user_id)
+        assert quiz  # for type checker, validated above
+
+        user_answers_map = self._map_user_answers(answers)
+
+        # Persist user answers
+        answers_to_save = self._prepare_answer_entities(quiz, user_answers_map)
+        if answers_to_save:
+            await self.quiz_repo.save_answers(answers_to_save)
+
+        # Update quiz state
+        quiz.score = self._calculate_score(quiz, user_answers_map)
+        quiz.completed_at = datetime.now(UTC)
+
+        return await self.quiz_repo.save(quiz)
+
+    def _validate_submission(self, quiz: Quiz | None, user_id: UUID) -> None:
         if not quiz:
             raise ValueError("Quiz not found")
         if quiz.user_id != user_id:
             raise ValueError("Not authorized")
-
         if quiz.completed_at:
             raise ValueError("Quiz already completed")
 
+    def _map_user_answers(
+        self, answers: list[QuestionUserSelectedOptions]
+    ) -> dict[UUID, set[UUID]]:
+        user_answers_map: dict[UUID, set[UUID]] = {}
+        for answer in answers:
+            if answer.question_id not in user_answers_map:
+                user_answers_map[answer.question_id] = set()
+            user_answers_map[answer.question_id].add(answer.selected_option_id)
+        return user_answers_map
+
+    def _calculate_score(
+        self, quiz: Quiz, user_answers_map: dict[UUID, set[UUID]]
+    ) -> float:
         correct_count = 0
         total_questions = len(quiz.questions)
 
-        # Create a map for quick lookup
-        question_map = {q.id: q for q in quiz.questions}
-
-        for answer in answers:
-            question = question_map.get(answer.question_id)
-            if not question:
-                continue
-
-            selected_option = next(
-                (o for o in question.options if o.id == answer.selected_option_id), None
-            )
-            if selected_option and selected_option.is_correct:
+        for question in quiz.questions:
+            correct_option_ids = {o.id for o in question.options if o.is_correct}
+            user_selected_ids = user_answers_map.get(question.id, set())
+            if correct_option_ids and correct_option_ids == user_selected_ids:
                 correct_count += 1
 
-            # Save answer
-            user_answer = QuizUserAnswer(
-                quiz_id=quiz.id,
-                question_id=answer.question_id,
-                selected_option_id=answer.selected_option_id,
-            )
-            self.quiz_repo.session.add(user_answer)
+        return (correct_count / total_questions) * 100 if total_questions > 0 else 0.0
 
-        score = (correct_count / total_questions) * 100 if total_questions > 0 else 0
-        quiz.score = score
-        quiz.completed_at = datetime.now(UTC)
+    def _prepare_answer_entities(
+        self, quiz: Quiz, user_answers_map: dict[UUID, set[UUID]]
+    ) -> list[QuizUserAnswer]:
+        question_map = {q.id: q for q in quiz.questions}
+        answers_to_save = []
 
-        self.quiz_repo.session.add(quiz)
-        await self.quiz_repo.session.commit()
-        return quiz
+        for q_id, option_ids in user_answers_map.items():
+            if q_id not in question_map:
+                continue
+
+            for opt_id in option_ids:
+                answers_to_save.append(
+                    QuizUserAnswer(
+                        quiz_id=quiz.id,
+                        question_id=q_id,
+                        selected_option_id=opt_id,
+                    )
+                )
+        return answers_to_save
 
     async def list_quizzes(self, study_plan_id: UUID, user_id: UUID) -> list[Quiz]:
         return await self.quiz_repo.list_by_plan_and_user(study_plan_id, user_id)
