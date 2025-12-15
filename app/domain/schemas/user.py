@@ -16,10 +16,10 @@ class UserUpdate(BaseModel):
     email: EmailStr | None = None
     full_name: str | None = Field(default=None, max_length=255)
     password: str | None = Field(default=None, min_length=8, max_length=40)
-    is_active: bool | None = None
+    active: bool | None = None
 
 
 class UserRead(UserBase):
     id: UUID
-    is_active: bool
+    active: bool
     model_config = ConfigDict(from_attributes=True)

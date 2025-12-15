@@ -134,7 +134,7 @@ async def get_current_user(
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if not user.is_active:
+    if not user.active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return user
 
@@ -155,7 +155,7 @@ async def get_current_user_optional(
 
     user = await user_service.user_repository.get_by_id(UUID(token_data.sub))
 
-    if not user or not user.is_active:
+    if not user or not user.active:
         return None
     return user
 

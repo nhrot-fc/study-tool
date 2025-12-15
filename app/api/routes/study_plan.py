@@ -59,7 +59,7 @@ async def generate_study_plan(
     gemini_service: Annotated[GeminiService, Depends(get_gemini_service)],
     current_user: CurrentUser,
 ) -> StudyPlanProposal:
-    if not current_user or not current_user.is_active:
+    if not current_user or not current_user.active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Authentication required to generate study plans",
@@ -152,7 +152,7 @@ async def list_user_study_plans(
     limit: int = Query(100, ge=1, le=100),
 ) -> list[StudyPlanRead]:
     user = await user_service.get_by_id(user_id)
-    if not user or not user.is_active:
+    if not user or not user.active:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )

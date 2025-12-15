@@ -22,7 +22,6 @@ class User(BaseEntity, table=True):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     username: str
     hashed_password: str
-    is_active: bool = True
 
     refresh_tokens: list["RefreshToken"] = Relationship(back_populates="user")
     study_plans: list["StudyPlan"] = Relationship(back_populates="user")
