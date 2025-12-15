@@ -37,7 +37,6 @@ async def create_study_plan(
     current_user: CurrentUser,
     service: Annotated[StudyPlanService, Depends(get_study_plan_service)],
 ) -> StudyPlanReadDetail:
-    # Check that the user_id matches the current user
     if plan_in.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -60,7 +59,7 @@ async def generate_study_plan(
     gemini_service: Annotated[GeminiService, Depends(get_gemini_service)],
     current_user: CurrentUser,
 ) -> StudyPlanProposal:
-    if not current_user:
+    if not current_user or not current_user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Authentication required to generate study plans",
@@ -87,7 +86,7 @@ async def get_study_plan(
     current_user: CurrentUserOptional,
 ) -> StudyPlanReadDetailWithProgress:
     plan = await service.get_study_plan_detailed(plan_id)
-    if not plan:
+    if not plan or not plan.active:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Study plan not found"
         )
@@ -112,7 +111,7 @@ async def update_study_plan(
     progress_service: Annotated[ProgressService, Depends(get_progress_service)],
 ) -> StudyPlanReadDetail:
     plan = await service.get_study_plan_detailed(plan_id)
-    if not plan:
+    if not plan or not plan.active:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Study plan not found"
         )
@@ -153,7 +152,7 @@ async def list_user_study_plans(
     limit: int = Query(100, ge=1, le=100),
 ) -> list[StudyPlanRead]:
     user = await user_service.get_by_id(user_id)
-    if not user:
+    if not user or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )

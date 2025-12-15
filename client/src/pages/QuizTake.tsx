@@ -33,24 +33,25 @@ export default function QuizTake() {
   const [answers, setAnswers] = useState<Record<string, string[]>>({});
   const [result, setResult] = useState<QuizResult | null>(null);
 
-  useEffect(() => {
+  const loadQuiz = useCallback(async () => {
     if (!id) return;
-    const loadQuiz = async () => {
-      try {
-        const data = await apiClient.getQuiz(id);
-        setQuiz(data);
-        if (!data.started_at) {
-          await apiClient.startQuiz(id);
-        }
-      } catch (err) {
-        console.error("Failed to load quiz", err);
-        toast.error("Failed to load quiz");
-      } finally {
-        setLoading(false);
+    try {
+      const data = await apiClient.getQuiz(id);
+      setQuiz(data);
+      if (!data.started_at) {
+        await apiClient.startQuiz(id);
       }
-    };
-    loadQuiz();
+    } catch (err) {
+      console.error("Failed to load quiz", err);
+      toast.error("Failed to load quiz");
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    loadQuiz();
+  }, [loadQuiz]);
 
   const handleAnswerChange = (
     questionId: string,
@@ -119,9 +120,9 @@ export default function QuizTake() {
   );
 
   const handleTimerExpire = useCallback(() => {
-    toast.error("Time expired! Submitting quiz...");
-    handleSubmit(true);
-  }, [handleSubmit]);
+    toast.error("Time expired!");
+    loadQuiz();
+  }, [loadQuiz]);
 
   if (loading) {
     return (
@@ -142,7 +143,7 @@ export default function QuizTake() {
     );
   }
 
-  if (result || quiz.completed_at) {
+  if (result || quiz.completed_at || quiz.is_expired) {
     const isSelected = (questionId: string, optionId: string) => {
       if (result) {
         return answers[questionId]?.includes(optionId);

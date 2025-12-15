@@ -253,6 +253,25 @@ class APIClient {
   async getPlanQuizzes(planId: string): Promise<QuizRead[]> {
     return this.request<QuizRead[]>(`/quizzes/plan/${planId}/quizzes`);
   }
+
+  async deleteQuiz(quizId: string): Promise<void> {
+    await this.request(`/quizzes/${quizId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async deleteStudyPlan(planId: string): Promise<void> {
+    await this.request(`/plan/${planId}`, {
+      method: "DELETE",
+    });
+  }
+
+  async deleteAccount(): Promise<void> {
+    await this.request("/auth/unregister", {
+      method: "POST",
+    });
+    this.clearToken();
+  }
 }
 
 export const apiClient = new APIClient();

@@ -124,9 +124,8 @@ class QuizService:
             else quiz.started_at
         )
         time_elapsed = datetime.now(UTC) - started_at
-        # Allow submission even if time expired to handle auto-submit from client
-        # if time_elapsed.total_seconds() > quiz.duration_minutes * 60:
-        #     raise InvalidOperationException("Quiz time has expired")
+        if time_elapsed.total_seconds() > quiz.duration_minutes * 60:
+            raise InvalidOperationException("Quiz time has expired")
 
         user_answers_map = self._map_user_answers(answers)
 
@@ -185,3 +184,12 @@ class QuizService:
 
     async def list_quizzes(self, study_plan_id: UUID, user_id: UUID) -> list[Quiz]:
         return await self.quiz_repo.list_by_plan_and_user(study_plan_id, user_id)
+
+    async def delete_quiz(self, quiz_id: UUID, user_id: UUID) -> None:
+        quiz = await self.quiz_repo.get_by_id(quiz_id)
+        if not quiz:
+            raise NotFoundException("Quiz not found")
+        if quiz.user_id != user_id:
+            raise UnauthorizedException("Not authorized")
+
+        await self.quiz_repo.soft_delete(quiz)

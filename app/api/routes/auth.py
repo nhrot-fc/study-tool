@@ -97,3 +97,12 @@ async def logout(
 @router.get("/me", response_model=UserRead)
 async def read_users_me(current_user: CurrentUser) -> UserRead:
     return UserRead.model_validate(current_user)
+
+
+@router.post("/unregister")
+async def unregister(
+    current_user: CurrentUser,
+    user_service: Annotated[UserService, Depends(get_user_service)],
+) -> dict[str, str]:
+    await user_service.delete_user(current_user.id)
+    return {"message": "User account deleted successfully"}

@@ -46,3 +46,10 @@ class UserService:
             skip=skip,
             limit=limit,
         )
+
+    async def delete_user(self, user_id: UUID) -> None:
+        user = await self.user_repository.get_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+
+        await self.user_repository.soft_delete(user)

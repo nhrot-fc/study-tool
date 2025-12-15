@@ -117,3 +117,15 @@ async def list_quizzes(
 ) -> list[QuizRead]:
     quizzes = await service.list_quizzes(plan_id, current_user.id)
     return [QuizRead.model_validate(q) for q in quizzes]
+
+
+@router.delete(
+    "/{quiz_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_quiz(
+    quiz_id: UUID,
+    current_user: CurrentUser,
+    service: Annotated[QuizService, Depends(get_quiz_service)],
+) -> None:
+    await service.delete_quiz(quiz_id, current_user.id)

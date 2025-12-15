@@ -21,6 +21,8 @@ class StudyPlanRepository(BaseRepository[StudyPlan]):
         statement = (
             select(StudyPlan)
             .where(col(StudyPlan.user_id) == user_id)
+            .where(col(StudyPlan.active))
+            .order_by(col(StudyPlan.created_at).desc())
             .offset(skip)
             .limit(limit)
         )
