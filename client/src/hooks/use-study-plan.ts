@@ -162,6 +162,7 @@ export function useStudyPlan(planId: string): UseStudyPlanReturn {
         const updatedPlan = await apiClient.getStudyPlan(planId);
         setPlan(mergeProgress(updatedPlan));
       } catch (err) {
+        console.error("Error updating resource status", err);
         // Revert on error
         setPlan((prev) => {
           if (!prev) return null;

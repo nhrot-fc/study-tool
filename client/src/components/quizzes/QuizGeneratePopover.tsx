@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Button, VStack, Input, Textarea, Text, Box, Heading } from "@chakra-ui/react";
+import {
+  Button,
+  VStack,
+  Input,
+  Textarea,
+  Text,
+  Box,
+  Heading,
+} from "@chakra-ui/react";
 import { Popover } from "../ui/popover";
 import { apiClient } from "../../lib/api";
 import { type StudyPlan } from "../../lib/types";
@@ -47,7 +55,11 @@ export const QuizGeneratePopover = ({
   };
 
   return (
-    <Popover.Root open={isOpen} onOpenChange={(e) => setIsOpen(e.open)} positioning={{ placement: "bottom-end" }}>
+    <Popover.Root
+      open={isOpen}
+      onOpenChange={(e) => setIsOpen(e.open)}
+      positioning={{ placement: "bottom-end" }}
+    >
       <Popover.Trigger asChild>
         {trigger || (
           <Button variant="outline">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -15,11 +15,18 @@ import {
   Box,
   Separator,
 } from "@chakra-ui/react";
-import { LuArrowLeft, LuClock, LuTrophy, LuBrainCircuit } from "react-icons/lu";
+import {
+  LuArrowLeft,
+  LuClock,
+  LuTrophy,
+  LuBrainCircuit,
+  LuTrash2,
+} from "react-icons/lu";
 import { apiClient } from "../lib/api";
-import { type QuizRead } from "../lib/types";
+import { type QuizRead, type StudyPlanWithProgress } from "../lib/types";
 import { useStudyPlan } from "../hooks/use-study-plan";
 import { QuizGeneratePopover } from "../components/quizzes/QuizGeneratePopover";
+import { toast } from "sonner";
 
 export default function PlanQuizzes() {
   const { id } = useParams<{ id: string }>();
@@ -28,7 +35,7 @@ export default function PlanQuizzes() {
   const [quizzes, setQuizzes] = useState<QuizRead[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const loadQuizzes = useCallback(() => {
     if (!id) return;
     apiClient
       .getPlanQuizzes(id)
@@ -36,6 +43,22 @@ export default function PlanQuizzes() {
       .catch((err) => console.error("Failed to load quizzes", err))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    loadQuizzes();
+  }, [loadQuizzes]);
+
+  const handleDelete = async (quizId: string) => {
+    if (!confirm("Are you sure you want to delete this quiz?")) return;
+    try {
+      await apiClient.deleteQuiz(quizId);
+      toast.success("Quiz deleted");
+      loadQuizzes();
+    } catch (err) {
+      console.error("Failed to delete quiz", err);
+      toast.error("Failed to delete quiz");
+    }
+  };
 
   if (loading) {
     return (
@@ -83,7 +106,12 @@ export default function PlanQuizzes() {
       ) : (
         <VStack align="stretch" gap={3}>
           {quizzes.map((quiz) => (
-            <QuizCardItem key={quiz.id} quiz={quiz} onNavigate={navigate} />
+            <QuizCardItem
+              key={quiz.id}
+              quiz={quiz}
+              onNavigate={navigate}
+              onDelete={handleDelete}
+            />
           ))}
         </VStack>
       )}
@@ -95,9 +123,11 @@ export default function PlanQuizzes() {
 function QuizCardItem({
   quiz,
   onNavigate,
+  onDelete,
 }: {
   quiz: QuizRead;
-  onNavigate: any;
+  onNavigate: (path: string) => void;
+  onDelete: (id: string) => void;
 }) {
   const isCompleted = !!quiz.completed_at;
   const isExpired = !!quiz.is_expired;
@@ -160,11 +190,7 @@ function QuizCardItem({
           {/* Acción / Resultado */}
           <HStack gap={4}>
             {isCompleted && quiz.score !== undefined ? (
-              <HStack
-                gap={1}
-                color={statusColor + ".500"}
-                pr={2}
-              >
+              <HStack gap={1} color={statusColor + ".500"} pr={2}>
                 <LuTrophy />
                 <Text fontWeight="bold" fontSize="lg">
                   {Math.round(quiz.score ?? 0)}%
@@ -186,6 +212,14 @@ function QuizCardItem({
                     ? "Continue"
                     : "Start Quiz"}
             </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              colorPalette="red"
+              onClick={() => onDelete(quiz.id)}
+            >
+              <LuTrash2 />
+            </Button>
           </HStack>
         </HStack>
       </Card.Body>
@@ -194,7 +228,13 @@ function QuizCardItem({
 }
 
 // Componente de estado vacío
-function EmptyState({ id, plan }: { id?: string; plan?: any }) {
+function EmptyState({
+  id,
+  plan,
+}: {
+  id?: string;
+  plan?: StudyPlanWithProgress | null;
+}) {
   return (
     <Card.Root variant="outline" borderStyle="dashed" py={10}>
       <Center flexDirection="column" gap={4}>

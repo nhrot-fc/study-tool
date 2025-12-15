@@ -20,6 +20,7 @@ import { LoginPopover } from "./LoginPopover";
 import { RegisterPopover } from "./RegisterPopover";
 import { apiClient } from "../lib/api";
 import { type User } from "../lib/types";
+import { toast } from "sonner";
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -30,6 +31,24 @@ const Header = () => {
   const [showResults, setShowResults] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const handleDeleteAccount = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to delete your account? This action cannot be undone.",
+      )
+    )
+      return;
+    try {
+      await apiClient.deleteAccount();
+      logout();
+      toast.success("Account deleted");
+      navigate("/");
+    } catch (err) {
+      console.error("Failed to delete account", err);
+      toast.error("Failed to delete account");
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -211,9 +230,19 @@ const Header = () => {
               <RegisterPopover />
             </>
           ) : (
-            <Button variant="ghost" size="sm" onClick={() => logout()}>
-              Sign out
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                colorPalette="red"
+                onClick={handleDeleteAccount}
+              >
+                Delete Account
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => logout()}>
+                Sign out
+              </Button>
+            </>
           )}
           <ColorModeButton />
           <IconButton

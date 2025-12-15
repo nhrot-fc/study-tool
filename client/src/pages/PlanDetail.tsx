@@ -17,9 +17,17 @@ import { useStudyPlan } from "../hooks/use-study-plan";
 import { useAuth } from "../hooks/use-auth";
 import { StudyPlanTree } from "../components/plans/StudyPlanTree";
 import { ResourceItem } from "../components/resources/ResourceItem";
-import { LuArrowLeft, LuCopy, LuBrainCircuit, LuList } from "react-icons/lu";
+import {
+  LuArrowLeft,
+  LuCopy,
+  LuBrainCircuit,
+  LuList,
+  LuTrash2,
+} from "react-icons/lu";
 import { MdEdit } from "react-icons/md";
 import { QuizGeneratePopover } from "../components/quizzes/QuizGeneratePopover";
+import { apiClient } from "../lib/api";
+import { toast } from "sonner";
 
 export default function PlanDetail() {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +36,19 @@ export default function PlanDetail() {
   const { plan, loading, error, forkPlan, toggleResourceStatus } = useStudyPlan(
     id || "",
   );
+
+  const handleDelete = async () => {
+    if (!id) return;
+    if (!confirm("Are you sure you want to delete this study plan?")) return;
+    try {
+      await apiClient.deleteStudyPlan(id);
+      toast.success("Study plan deleted");
+      navigate("/");
+    } catch (err) {
+      console.error("Failed to delete study plan", err);
+      toast.error("Failed to delete study plan");
+    }
+  };
 
   if (loading) {
     return (
@@ -104,14 +125,25 @@ export default function PlanDetail() {
                   gap={2}
                 >
                   {user.id === plan.user_id && (
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate(`/plans/${id}/edit`)}
-                      title="Edit this plan"
-                      flex={{ base: 1, sm: "initial" }}
-                    >
-                      <MdEdit /> Edit
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate(`/plans/${id}/edit`)}
+                        title="Edit this plan"
+                        flex={{ base: 1, sm: "initial" }}
+                      >
+                        <MdEdit /> Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        colorPalette="red"
+                        onClick={handleDelete}
+                        title="Delete this plan"
+                        flex={{ base: 1, sm: "initial" }}
+                      >
+                        <LuTrash2 /> Delete
+                      </Button>
+                    </>
                   )}
 
                   <Button

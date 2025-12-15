@@ -17,8 +17,8 @@ export const RegisterPopover = () => {
     try {
       await register(email, username, password);
       setIsOpen(false);
-    } catch (err: any) {
-      setError(err.message || "Registration failed");
+    } catch (err: unknown) {
+      setError((err as Error).message || "Registration failed");
     }
   };
 
