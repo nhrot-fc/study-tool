@@ -26,7 +26,6 @@ const UserPlans = () => {
 
   useEffect(() => {
     if (userId) {
-      setLoading(true);
       Promise.all([apiClient.getStudyPlans(userId), apiClient.getUser(userId)])
         .then(([plansData, userData]) => {
           setPlans(plansData);

@@ -48,6 +48,10 @@ class Question(BaseEntity, table=True):
         back_populates="question", sa_relationship_kwargs={"cascade": "all, delete"}
     )
 
+    @property
+    def correct_answer_count(self) -> int:
+        return sum(1 for o in self.options if o.is_correct)
+
 
 class QuestionOption(BaseEntity, table=True):
     __tablename__ = "question_option"  # type: ignore

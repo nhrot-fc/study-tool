@@ -36,7 +36,10 @@ class QuizRepository(BaseRepository[Quiz]):
         statement = (
             select(Quiz)
             .where(col(Quiz.id) == quiz_id)
-            .options(selectinload(Quiz.questions).selectinload(Question.options))  # type: ignore
+            .options(
+                selectinload(Quiz.questions).selectinload(Question.options),  # type: ignore
+                selectinload(Quiz.user_answers),  # type: ignore
+            )
         )
         result = await self.session.execute(statement)
         return result.scalars().first()

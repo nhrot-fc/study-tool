@@ -31,14 +31,8 @@ async def create_quiz(
     current_user: CurrentUser,
     service: Annotated[QuizService, Depends(get_quiz_service)],
 ) -> QuizRead:
-    try:
-        quiz = await service.create_quiz(plan_id, current_user.id, request)
-        return QuizRead.model_validate(quiz)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+    quiz = await service.create_quiz(plan_id, current_user.id, request)
+    return QuizRead.model_validate(quiz)
 
 
 @router.get(
@@ -61,6 +55,12 @@ async def get_quiz(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot access quiz for another user",
         )
+    quiz_result = await service.get_quiz_result(quiz)
+    if quiz_result:
+        return QuizReadDetail.model_validate(
+            quiz,
+            context={"result": quiz_result},
+        )
     return QuizReadDetail.model_validate(quiz)
 
 
@@ -73,14 +73,8 @@ async def start_quiz(
     current_user: CurrentUser,
     service: Annotated[QuizService, Depends(get_quiz_service)],
 ) -> QuizReadPublic:
-    try:
-        quiz = await service.start_quiz(quiz_id, current_user.id)
-        return QuizReadPublic.model_validate(quiz)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
+    quiz = await service.start_quiz(quiz_id, current_user.id)
+    return QuizReadPublic.model_validate(quiz)
 
 
 @router.post(
@@ -93,29 +87,23 @@ async def submit_quiz(
     current_user: CurrentUser,
     service: Annotated[QuizService, Depends(get_quiz_service)],
 ) -> QuizResult:
-    try:
-        quiz = await service.submit_answers(
-            quiz_id, current_user.id, submission.answers
-        )
+    quiz = await service.submit_answers(
+        quiz_id, current_user.id, submission.answers
+    )
 
-        total_questions = len(quiz.questions)
-        correct_answers = (
-            int((quiz.score / 100) * total_questions) if quiz.score is not None else 0
-        )
-        passed = (quiz.score or 0) >= 75.0
+    total_questions = len(quiz.questions)
+    correct_answers = (
+        int((quiz.score / 100) * total_questions) if quiz.score is not None else 0
+    )
+    passed = (quiz.score or 0) >= 75.0
 
-        quiz_data = QuizRead.model_validate(quiz).model_dump()
-        return QuizResult(
-            **quiz_data,
-            total_questions=total_questions,
-            correct_answers=correct_answers,
-            passed=passed,
-        )
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        ) from e
+    quiz_data = QuizRead.model_validate(quiz).model_dump()
+    return QuizResult(
+        **quiz_data,
+        total_questions=total_questions,
+        correct_answers=correct_answers,
+        passed=passed,
+    )
 
 
 @router.get(

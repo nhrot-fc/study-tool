@@ -6,7 +6,7 @@ import type {
   StudyPlan,
   StudyPlanSummary,
   StudyPlanWithProgress,
-  GeneratePlanRequest,
+  StudyPlanGenerateRequest,
   StudyPlanProposal,
   StudyPlanCreate,
   StudyPlanUpdate,
@@ -22,9 +22,9 @@ import type {
 
 export class ApiError extends Error {
   status: number;
-  data?: any;
+  data?: unknown;
 
-  constructor(status: number, message: string, data?: any) {
+  constructor(status: number, message: string, data?: unknown) {
     super(message);
     this.status = status;
     this.data = data;
@@ -96,6 +96,7 @@ class APIClient {
         } else if (Array.isArray(errorData.detail)) {
           // Handle FastAPI validation errors
           message = errorData.detail
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((err: any) => {
               const field = err.loc ? err.loc[err.loc.length - 1] : "Field";
               return `${field}: ${err.msg}`;
@@ -171,7 +172,7 @@ class APIClient {
   }
 
   async generatePlanWithAI(
-    request: GeneratePlanRequest,
+    request: StudyPlanGenerateRequest,
   ): Promise<StudyPlanProposal> {
     return this.request<StudyPlanProposal>("/plan/generate", {
       method: "POST",
@@ -180,7 +181,7 @@ class APIClient {
   }
 
   async refinePlanWithAI(
-    request: GeneratePlanRequest,
+    request: StudyPlanGenerateRequest,
   ): Promise<StudyPlanProposal> {
     return this.request<StudyPlanProposal>("/plan/generate", {
       method: "POST",

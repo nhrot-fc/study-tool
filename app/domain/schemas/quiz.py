@@ -39,12 +39,14 @@ class QuestionCreate(QuestionBase):
 class QuestionRead(QuestionBase):
     id: UUID
     options: list[QuestionOptionRead]
+    correct_answer_count: int
     model_config = ConfigDict(from_attributes=True)
 
 
 class QuestionPublic(QuestionBase):
     id: UUID
     options: list[QuestionOptionPublic]
+    correct_answer_count: int
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -74,8 +76,10 @@ class QuizRead(QuizBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-class QuizReadDetail(QuizRead):
-    questions: list[QuestionRead]
+class QuizUserAnswerRead(BaseModel):
+    question_id: UUID
+    selected_option_id: UUID
+    model_config = ConfigDict(from_attributes=True)
 
 
 class QuizReadPublic(QuizRead):
@@ -103,3 +107,9 @@ class QuizGenerateRequest(BaseModel):
     num_questions: int
     difficulty: float
     extra_instructions: str
+
+
+class QuizReadDetail(QuizRead):
+    questions: list[QuestionRead]
+    user_answers: list[QuizUserAnswerRead] = []
+    result: QuizResult | None = None

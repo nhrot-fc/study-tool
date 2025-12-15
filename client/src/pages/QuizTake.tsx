@@ -9,8 +9,6 @@ import {
   HStack,
   Spinner,
   Center,
-  Card,
-  RadioGroup,
   Box,
   Separator,
 } from "@chakra-ui/react";
@@ -20,8 +18,11 @@ import {
   type QuizResult,
   type QuestionUserSelectedOptions,
 } from "../lib/types";
-import { LuArrowLeft, LuCircleCheck, LuCircleX } from "react-icons/lu";
+import { LuArrowLeft } from "react-icons/lu";
 import { toast } from "sonner";
+import { QuestionCard } from "../components/quizzes/QuestionCard";
+import { QuizTimer } from "../components/quizzes/QuizTimer";
+import { QuizResultCard } from "../components/quizzes/QuizResultCard";
 
 export default function QuizTake() {
   const { id } = useParams<{ id: string }>();
@@ -29,7 +30,7 @@ export default function QuizTake() {
   const [quiz, setQuiz] = useState<QuizReadDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string[]>>({});
   const [result, setResult] = useState<QuizResult | null>(null);
 
   useEffect(() => {
@@ -38,12 +39,7 @@ export default function QuizTake() {
       try {
         const data = await apiClient.getQuiz(id);
         setQuiz(data);
-        if (data.completed_at) {
-          // If already completed, we might want to show results directly
-          // But the API for getQuiz returns QuizReadDetail which doesn't have result details like correct answers
-          // We might need to fetch result separately or just show score
-          // For now, let's just show the score from the quiz details
-        } else if (!data.started_at) {
+        if (!data.started_at) {
           await apiClient.startQuiz(id);
         }
       } catch (err) {
@@ -56,21 +52,49 @@ export default function QuizTake() {
     loadQuiz();
   }, [id]);
 
-  const handleAnswerChange = (questionId: string, optionId: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+  const handleAnswerChange = (
+    questionId: string,
+    optionId: string,
+    checked: boolean,
+    isMultiple: boolean,
+  ) => {
+    setAnswers((prev) => {
+      const current = prev[questionId] || [];
+      if (isMultiple) {
+        if (checked) {
+          return { ...prev, [questionId]: [...current, optionId] };
+        } else {
+          return {
+            ...prev,
+            [questionId]: current.filter((id) => id !== optionId),
+          };
+        }
+      } else {
+        return { ...prev, [questionId]: [optionId] };
+      }
+    });
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (force: boolean | React.MouseEvent = false) => {
     if (!id || !quiz) return;
 
-    const submissionAnswers: QuestionUserSelectedOptions[] = Object.entries(
-      answers,
-    ).map(([questionId, selectedOptionId]) => ({
-      question_id: questionId,
-      selected_option_id: selectedOptionId,
-    }));
+    const isForce = force === true;
 
-    if (submissionAnswers.length < quiz.questions.length) {
+    const submissionAnswers: QuestionUserSelectedOptions[] = [];
+    Object.entries(answers).forEach(([questionId, selectedOptionIds]) => {
+      selectedOptionIds.forEach((optionId) => {
+        submissionAnswers.push({
+          question_id: questionId,
+          selected_option_id: optionId,
+        });
+      });
+    });
+
+    const answeredQuestionsCount = Object.values(answers).filter(
+      (options) => options && options.length > 0,
+    ).length;
+
+    if (!isForce && answeredQuestionsCount < quiz.questions.length) {
       toast.error("Please answer all questions before submitting");
       return;
     }
@@ -90,6 +114,12 @@ export default function QuizTake() {
       setSubmitting(false);
     }
   };
+
+  const handleTimerExpire = () => {
+    toast.error("Time expired! Submitting quiz...");
+    handleSubmit(true);
+  };
+
 
   if (loading) {
     return (
@@ -111,8 +141,15 @@ export default function QuizTake() {
   }
 
   if (result || quiz.completed_at) {
-    const score = result?.score ?? quiz.score ?? 0;
-    const passed = result?.passed ?? score >= 70; // Assuming 70 is pass
+    const isSelected = (questionId: string, optionId: string) => {
+      if (result) {
+        return answers[questionId]?.includes(optionId);
+      }
+      return quiz.user_answers?.some(
+        (ua) =>
+          ua.question_id === questionId && ua.selected_option_id === optionId,
+      );
+    };
 
     return (
       <Container maxW="container.md" py={8}>
@@ -127,32 +164,27 @@ export default function QuizTake() {
           </HStack>
         </Button>
 
-        <Card.Root variant="elevated" mb={8}>
-          <Card.Body textAlign="center" py={10}>
-            <VStack gap={4}>
-              {passed ? (
-                <LuCircleCheck size={64} color="green" />
-              ) : (
-                <LuCircleX size={64} color="red" />
-              )}
-              <Heading size="2xl">{score}%</Heading>
-              <Text fontSize="xl" fontWeight="medium">
-                {passed ? "Quiz Passed!" : "Quiz Failed"}
-              </Text>
-              <Text color="gray.500">
-                {result
-                  ? `You got ${result.correct_answers} out of ${result.total_questions} correct.`
-                  : "Quiz completed."}
-              </Text>
-              <Button
-                colorPalette="blue"
-                onClick={() => navigate(`/plans/${quiz.study_plan_id}`)}
-              >
-                Return to Study Plan
-              </Button>
-            </VStack>
-          </Card.Body>
-        </Card.Root>
+        <QuizResultCard
+          result={result}
+          quiz={quiz}
+          onReturn={() => navigate(`/plans/${quiz.study_plan_id}`)}
+        />
+
+        <VStack gap={6} align="stretch">
+          <Heading size="lg">Review</Heading>
+          {quiz.questions.map((question, index) => (
+            <QuestionCard
+              key={question.id}
+              question={question}
+              index={index}
+              readOnly
+              isCorrectOption={(optId) =>
+                question.options.find((o) => o.id === optId)?.is_correct ?? false
+              }
+              isUserSelected={(optId) => isSelected(question.id, optId) ?? false}
+            />
+          ))}
+        </VStack>
       </Container>
     );
   }
@@ -171,55 +203,31 @@ export default function QuizTake() {
       </Button>
 
       <VStack gap={8} align="stretch">
-        <Box>
-          <Heading size="xl" mb={2}>
-            {quiz.title}
-          </Heading>
-          <Text color="gray.600">Answer all questions below. Good luck!</Text>
-        </Box>
+        <HStack justify="space-between" align="start">
+          <Box>
+            <Heading size="xl" mb={2}>
+              {quiz.title}
+            </Heading>
+            <Text color="gray.600">Answer all questions below. Good luck!</Text>
+          </Box>
+          {quiz.started_at && (
+            <QuizTimer
+              startedAt={quiz.started_at}
+              durationMinutes={quiz.duration_minutes}
+              onExpire={handleTimerExpire}
+            />
+          )}
+        </HStack>
 
         <VStack gap={6} align="stretch">
           {quiz.questions.map((question, index) => (
-            <Card.Root key={question.id}>
-              <Card.Body>
-                <VStack align="start" gap={4}>
-                  <Text fontWeight="bold" fontSize="lg" color="gray.400">
-                    {index + 1}. {question.title}
-                  </Text>
-                  <Text>{question.description}</Text>
-                  <RadioGroup.Root
-                    value={answers[question.id] || ""}
-                    onValueChange={(e) =>
-                      handleAnswerChange(question.id, e.value as string)
-                    }
-                  >
-                    <VStack align="start" gap={3}>
-                      {question.options.map((option) => (
-                        <RadioGroup.Item
-                          key={option.id}
-                          value={option.id}
-                          width="full"
-                          p={2}
-                          borderWidth="1px"
-                          borderRadius="md"
-                          _checked={{
-                            borderColor: "blue.500",
-                            bg: "blue.50",
-                            _dark: { bg: "blue.900/20" },
-                          }}
-                        >
-                          <RadioGroup.ItemText flex="1">
-                            {option.text}
-                          </RadioGroup.ItemText>
-                          <RadioGroup.ItemHiddenInput />
-                          <RadioGroup.ItemControl />
-                        </RadioGroup.Item>
-                      ))}
-                    </VStack>
-                  </RadioGroup.Root>
-                </VStack>
-              </Card.Body>
-            </Card.Root>
+            <QuestionCard
+              key={question.id}
+              question={question}
+              index={index}
+              selectedOptions={answers[question.id]}
+              onAnswerChange={handleAnswerChange}
+            />
           ))}
         </VStack>
 

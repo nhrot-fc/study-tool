@@ -1,7 +1,17 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from app.domain.schemas.quiz import QuestionUserSelectedOptions, QuizGenerateRequest
+from app.domain.exceptions.base import (
+    InvalidOperationException,
+    NotFoundException,
+    UnauthorizedException,
+)
+from app.domain.schemas.quiz import (
+    QuestionUserSelectedOptions,
+    QuizGenerateRequest,
+    QuizRead,
+    QuizResult,
+)
 from app.domain.services.gemini import GeminiService
 from app.persistence.model.quiz import Question, QuestionOption, Quiz, QuizUserAnswer
 from app.persistence.repository.quiz import QuizRepository
@@ -25,13 +35,9 @@ class QuizService:
         user_id: UUID,
         gen_request: QuizGenerateRequest,
     ) -> Quiz:
-        existing = await self.quiz_repo.get_by_plan_and_user(study_plan_id, user_id)
-        if existing:
-            return existing
-
         study_plan = await self.study_plan_repo.get_by_id(study_plan_id)
         if not study_plan:
-            raise ValueError("Study plan not found")
+            raise NotFoundException("Study plan not found")
 
         proposal = self.gemini_service.generate_quiz_proposal(
             ignore_base_prompt=gen_request.ignore_base_prompt,
@@ -41,7 +47,7 @@ class QuizService:
             difficulty=gen_request.difficulty,
         )
         if not proposal:
-            raise ValueError("Failed to generate quiz")
+            raise InvalidOperationException("Failed to generate quiz")
 
         quiz = Quiz(
             study_plan_id=study_plan_id,
@@ -66,12 +72,32 @@ class QuizService:
     async def get_quiz(self, quiz_id: UUID) -> Quiz | None:
         return await self.quiz_repo.get_with_questions(quiz_id)
 
+    async def get_quiz_result(self, quiz: Quiz) -> QuizResult | None:
+        if not quiz.completed_at:
+            return None
+
+        total_questions = len(quiz.questions)
+        correct_answers = (
+            int(round((quiz.score / 100) * total_questions))
+            if quiz.score is not None and total_questions > 0
+            else 0
+        )
+        passed = (quiz.score or 0) >= 75.0
+
+        quiz_data = QuizRead.model_validate(quiz).model_dump()
+        return QuizResult(
+            **quiz_data,
+            total_questions=total_questions,
+            correct_answers=correct_answers,
+            passed=passed,
+        )
+
     async def start_quiz(self, quiz_id: UUID, user_id: UUID) -> Quiz:
         quiz = await self.quiz_repo.get_with_questions(quiz_id)
         if not quiz:
-            raise ValueError("Quiz not found")
+            raise NotFoundException("Quiz not found")
         if quiz.user_id != user_id:
-            raise ValueError("Not authorized")
+            raise UnauthorizedException("Not authorized")
 
         if not quiz.started_at:
             quiz.started_at = datetime.now(UTC)
@@ -83,29 +109,34 @@ class QuizService:
         self, quiz_id: UUID, user_id: UUID, answers: list[QuestionUserSelectedOptions]
     ) -> Quiz:
         quiz = await self.quiz_repo.get_with_questions(quiz_id)
-        self._validate_submission(quiz, user_id)
-        assert quiz  # for type checker, validated above
+        if not quiz:
+            raise NotFoundException("Quiz not found")
+        if quiz.user_id != user_id:
+            raise UnauthorizedException("Not authorized")
+        if quiz.completed_at:
+            raise InvalidOperationException("Quiz already completed")
+        if not quiz.started_at:
+            raise InvalidOperationException("Quiz has not been started")
+
+        started_at = (
+            quiz.started_at.replace(tzinfo=UTC)
+            if quiz.started_at.tzinfo is None
+            else quiz.started_at
+        )
+        time_elapsed = datetime.now(UTC) - started_at
+        if time_elapsed.total_seconds() > quiz.duration_minutes * 60:
+            raise InvalidOperationException("Quiz time has expired")
 
         user_answers_map = self._map_user_answers(answers)
 
-        # Persist user answers
         answers_to_save = self._prepare_answer_entities(quiz, user_answers_map)
         if answers_to_save:
             await self.quiz_repo.save_answers(answers_to_save)
 
-        # Update quiz state
         quiz.score = self._calculate_score(quiz, user_answers_map)
         quiz.completed_at = datetime.now(UTC)
 
         return await self.quiz_repo.save(quiz)
-
-    def _validate_submission(self, quiz: Quiz | None, user_id: UUID) -> None:
-        if not quiz:
-            raise ValueError("Quiz not found")
-        if quiz.user_id != user_id:
-            raise ValueError("Not authorized")
-        if quiz.completed_at:
-            raise ValueError("Quiz already completed")
 
     def _map_user_answers(
         self, answers: list[QuestionUserSelectedOptions]

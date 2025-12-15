@@ -14,12 +14,14 @@ import {
 } from "@chakra-ui/react";
 import { apiClient } from "../lib/api";
 import { type QuizRead } from "../lib/types";
+import { useStudyPlan } from "../hooks/use-study-plan";
 import { LuArrowLeft, LuPlay, LuCircleCheck } from "react-icons/lu";
 import { QuizGenerateModal } from "../components/quizzes/QuizGenerateModal";
 
 export default function PlanQuizzes() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { plan } = useStudyPlan(id || "");
   const [quizzes, setQuizzes] = useState<QuizRead[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,7 +53,7 @@ export default function PlanQuizzes() {
 
       <HStack justify="space-between" mb={8}>
         <Heading size="xl">Quizzes</Heading>
-        {id && <QuizGenerateModal planId={id} />}
+        {id && plan && <QuizGenerateModal planId={id} studyPlan={plan} />}
       </HStack>
 
       {quizzes.length === 0 ? (
@@ -59,9 +61,10 @@ export default function PlanQuizzes() {
           <Text color="gray.500" fontSize="lg">
             No quizzes generated yet.
           </Text>
-          {id && (
+          {id && plan && (
             <QuizGenerateModal
               planId={id}
+              studyPlan={plan}
               trigger={
                 <Button colorPalette="blue">Generate your first quiz</Button>
               }

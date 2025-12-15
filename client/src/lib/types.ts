@@ -129,10 +129,11 @@ export interface StudyPlanCreate extends StudyPlanProposal {
   user_id: string;
 }
 
-export interface GeneratePlanRequest {
-  message: string;
-  topic?: string;
-  proposal?: StudyPlanProposal;
+export interface StudyPlanGenerateRequest {
+  ignore_base_prompt: boolean;
+  ignore_proposal: boolean;
+  extra_instructions: string;
+  proposal: StudyPlanProposal;
 }
 
 export interface StatusUpdate {
@@ -163,7 +164,7 @@ export interface QuestionOptionBase {
   is_correct: boolean;
 }
 
-export interface QuestionOptionCreate extends QuestionOptionBase {}
+export type QuestionOptionCreate = QuestionOptionBase;
 
 export interface QuestionOptionRead extends QuestionOptionBase {
   id: string;
@@ -187,11 +188,13 @@ export interface QuestionCreate extends QuestionBase {
 export interface QuestionRead extends QuestionBase {
   id: string;
   options: QuestionOptionRead[];
+  correct_answer_count: number;
 }
 
 export interface QuestionPublic extends QuestionBase {
   id: string;
   options: QuestionOptionPublic[];
+  correct_answer_count: number;
 }
 
 export interface QuizBase {
@@ -218,8 +221,14 @@ export interface QuizRead extends QuizBase {
   score?: number | null;
 }
 
+export interface QuizUserAnswerRead {
+  question_id: string;
+  selected_option_id: string;
+}
+
 export interface QuizReadDetail extends QuizRead {
   questions: QuestionRead[];
+  user_answers: QuizUserAnswerRead[];
 }
 
 export interface QuizReadPublic extends QuizRead {
@@ -242,7 +251,9 @@ export interface QuizResult extends QuizRead {
 }
 
 export interface QuizGenerateRequest {
+  ignore_base_prompt: boolean;
+  study_plan: StudyPlan;
   num_questions: number;
   difficulty: number;
-  description?: string | null;
+  extra_instructions: string;
 }

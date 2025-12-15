@@ -96,21 +96,23 @@ export default function PlanDetail() {
                   </Box>
                 )}
               </VStack>
-              {user && plan.user_id === user.id && (
+              {user && (
                 <Stack
                   direction={{ base: "column", sm: "row" }}
                   w={{ base: "full", md: "auto" }}
                   justify="flex-start"
                   gap={2}
                 >
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate(`/plans/${id}/edit`)}
-                    title="Edit this plan"
-                    flex={{ base: 1, sm: "initial" }}
-                  >
-                    <MdEdit /> Edit
-                  </Button>
+                  {user.id === plan.user_id && (
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate(`/plans/${id}/edit`)}
+                      title="Edit this plan"
+                      flex={{ base: 1, sm: "initial" }}
+                    >
+                      <MdEdit /> Edit
+                    </Button>
+                  )}
 
                   <Button
                     variant="outline"
@@ -132,6 +134,7 @@ export default function PlanDetail() {
 
                   <QuizGenerateModal
                     planId={id || ""}
+                    studyPlan={plan}
                     trigger={
                       <Button
                         variant="outline"

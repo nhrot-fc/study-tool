@@ -1,25 +1,21 @@
 import { useState } from "react";
-import {
-  Button,
-  VStack,
-  Input,
-  Textarea,
-  Text,
-  Box,
-} from "@chakra-ui/react";
+import { Button, VStack, Input, Textarea, Text, Box } from "@chakra-ui/react";
 import { Dialog } from "../ui/dialog";
 import { apiClient } from "../../lib/api";
+import { type StudyPlan } from "../../lib/types";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { LuBrainCircuit } from "react-icons/lu";
 
 interface QuizGenerateModalProps {
   planId: string;
+  studyPlan: StudyPlan;
   trigger?: React.ReactNode;
 }
 
 export const QuizGenerateModal = ({
   planId,
+  studyPlan,
   trigger,
 }: QuizGenerateModalProps) => {
   const navigate = useNavigate();
@@ -33,9 +29,11 @@ export const QuizGenerateModal = ({
     setLoading(true);
     try {
       const quiz = await apiClient.generateQuiz(planId, {
+        ignore_base_prompt: false,
+        study_plan: studyPlan,
         num_questions: numQuestions,
         difficulty,
-        description: description || undefined,
+        extra_instructions: description,
       });
       setIsOpen(false);
       toast.success("Quiz generated successfully!");
@@ -77,14 +75,14 @@ export const QuizGenerateModal = ({
             </Box>
             <Box>
               <Text mb={1} fontWeight="medium">
-                Difficulty (1-5)
+                Difficulty (1-10)
               </Text>
               <Input
                 type="number"
                 value={difficulty}
                 onChange={(e) => setDifficulty(parseInt(e.target.value))}
                 min={1}
-                max={5}
+                max={10}
               />
             </Box>
             <Box>

@@ -37,8 +37,9 @@ export default function PlanCreate() {
     setIsGenerating(true);
     try {
       const result = await apiClient.generatePlanWithAI({
-        topic,
-        message,
+        ignore_base_prompt: false,
+        ignore_proposal: false,
+        extra_instructions: `Topic: ${topic}\nDetails: ${message}`,
         proposal,
       });
       setProposal(result);
@@ -50,6 +51,7 @@ export default function PlanCreate() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSave = async (data: any) => {
     if (!user) return;
     try {
