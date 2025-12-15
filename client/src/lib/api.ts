@@ -12,6 +12,12 @@ import type {
   StudyPlanUpdate,
   ResourceProgress,
   StatusUpdate,
+  QuizGenerateRequest,
+  QuizRead,
+  QuizReadDetail,
+  QuizReadPublic,
+  QuizSubmission,
+  QuizResult,
 } from "./types";
 
 export class ApiError extends Error {
@@ -211,6 +217,40 @@ class APIClient {
         body: JSON.stringify({ status }),
       },
     );
+  }
+
+  async generateQuiz(
+    planId: string,
+    request: QuizGenerateRequest,
+  ): Promise<QuizRead> {
+    return this.request<QuizRead>(`/quizzes/plan/${planId}/gen-quiz`, {
+      method: "POST",
+      body: JSON.stringify(request),
+    });
+  }
+
+  async getQuiz(quizId: string): Promise<QuizReadDetail> {
+    return this.request<QuizReadDetail>(`/quizzes/${quizId}`);
+  }
+
+  async startQuiz(quizId: string): Promise<QuizReadPublic> {
+    return this.request<QuizReadPublic>(`/quizzes/${quizId}/start`, {
+      method: "POST",
+    });
+  }
+
+  async submitQuiz(
+    quizId: string,
+    submission: QuizSubmission,
+  ): Promise<QuizResult> {
+    return this.request<QuizResult>(`/quizzes/${quizId}/submit`, {
+      method: "POST",
+      body: JSON.stringify(submission),
+    });
+  }
+
+  async getPlanQuizzes(planId: string): Promise<QuizRead[]> {
+    return this.request<QuizRead[]>(`/quizzes/plan/${planId}/quizzes`);
   }
 }
 

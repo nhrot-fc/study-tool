@@ -157,3 +157,92 @@ export interface StudyPlanUpdate {
   description?: string | null;
   sections?: SectionUpsert[] | null;
 }
+
+export interface QuestionOptionBase {
+  text: string;
+  is_correct: boolean;
+}
+
+export interface QuestionOptionCreate extends QuestionOptionBase {}
+
+export interface QuestionOptionRead extends QuestionOptionBase {
+  id: string;
+}
+
+export interface QuestionOptionPublic {
+  id: string;
+  text: string;
+}
+
+export interface QuestionBase {
+  title: string;
+  description: string;
+  order: number;
+}
+
+export interface QuestionCreate extends QuestionBase {
+  options: QuestionOptionCreate[];
+}
+
+export interface QuestionRead extends QuestionBase {
+  id: string;
+  options: QuestionOptionRead[];
+}
+
+export interface QuestionPublic extends QuestionBase {
+  id: string;
+  options: QuestionOptionPublic[];
+}
+
+export interface QuizBase {
+  title: string;
+  difficulty: number;
+  duration_minutes: number;
+}
+
+export interface QuizProposal extends QuizBase {
+  questions: QuestionCreate[];
+}
+
+export interface QuizCreate extends QuizProposal {
+  study_plan_id: string;
+  user_id: string;
+}
+
+export interface QuizRead extends QuizBase {
+  id: string;
+  study_plan_id: string;
+  user_id: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+  score?: number | null;
+}
+
+export interface QuizReadDetail extends QuizRead {
+  questions: QuestionRead[];
+}
+
+export interface QuizReadPublic extends QuizRead {
+  questions: QuestionPublic[];
+}
+
+export interface QuestionUserSelectedOptions {
+  question_id: string;
+  selected_option_id: string;
+}
+
+export interface QuizSubmission {
+  answers: QuestionUserSelectedOptions[];
+}
+
+export interface QuizResult extends QuizRead {
+  total_questions: number;
+  correct_answers: number;
+  passed: boolean;
+}
+
+export interface QuizGenerateRequest {
+  num_questions: number;
+  difficulty: number;
+  description?: string | null;
+}
