@@ -1,7 +1,7 @@
 import pytest
-from sqlalchemy.exc import IntegrityError
 
 from app.core.security import verify_password
+from app.domain.exceptions.base import AlreadyExistsException
 from app.domain.schemas.user import UserCreate
 from app.domain.services.user import UserService
 
@@ -47,5 +47,5 @@ async def test_create_user_duplicate_email(user_service: UserService):
         username="user2",
         password="password123",
     )
-    with pytest.raises(IntegrityError):
+    with pytest.raises(AlreadyExistsException):
         await user_service.create_user(user_in_2)

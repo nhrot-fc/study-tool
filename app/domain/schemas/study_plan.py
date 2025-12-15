@@ -49,6 +49,7 @@ class StudyPlanReadDetailWithProgress(StudyPlanReadDetail):
 
 
 class StudyPlanGenerateRequest(BaseModel):
-    message: str
-    topic: str | None = None
-    proposal: StudyPlanProposal | None = None
+    ignore_base_prompt: bool
+    ignore_proposal: bool
+    extra_instructions: str
+    proposal: StudyPlanProposal

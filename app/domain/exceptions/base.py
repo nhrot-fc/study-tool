@@ -8,29 +8,29 @@ class DomainException(Exception):
         self,
         message: str,
         code: str = "INTERNAL_ERROR",
-        details: dict[str, Any] | None = None,
+        detail: dict[str, Any] | None = None,
     ):
         self.message = message
         self.code = code
-        self.details = details or {}
+        self.detail = detail or {}
         super().__init__(self.message)
 
 
 class NotFoundException(DomainException):
-    def __init__(self, message: str, details: dict[str, Any] | None = None):
-        super().__init__(message, code="NOT_FOUND", details=details)
+    def __init__(self, message: str, detail: dict[str, Any] | None = None):
+        super().__init__(message, code="NOT_FOUND", detail=detail)
 
 
 class AlreadyExistsException(DomainException):
-    def __init__(self, message: str, details: dict[str, Any] | None = None):
-        super().__init__(message, code="ALREADY_EXISTS", details=details)
+    def __init__(self, message: str, detail: dict[str, Any] | None = None):
+        super().__init__(message, code="ALREADY_EXISTS", detail=detail)
 
 
 class InvalidOperationException(DomainException):
-    def __init__(self, message: str, details: dict[str, Any] | None = None):
-        super().__init__(message, code="INVALID_OPERATION", details=details)
+    def __init__(self, message: str, detail: dict[str, Any] | None = None):
+        super().__init__(message, code="INVALID_OPERATION", detail=detail)
 
 
 class UnauthorizedException(DomainException):
-    def __init__(self, message: str, details: dict[str, Any] | None = None):
-        super().__init__(message, code="UNAUTHORIZED", details=details)
+    def __init__(self, message: str, detail: dict[str, Any] | None = None):
+        super().__init__(message, code="UNAUTHORIZED", detail=detail)

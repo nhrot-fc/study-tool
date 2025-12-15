@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
+from app.domain.schemas.study_plan import StudyPlanReadDetail
+
 
 class QuestionOptionBase(BaseModel):
     text: str
@@ -96,6 +98,8 @@ class QuizResult(QuizRead):
 
 
 class QuizGenerateRequest(BaseModel):
+    ignore_base_prompt: bool
+    study_plan: StudyPlanReadDetail
     num_questions: int
     difficulty: float
-    description: str | None = None
+    extra_instructions: str

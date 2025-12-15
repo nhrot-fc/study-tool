@@ -33,17 +33,12 @@ class QuizService:
         if not study_plan:
             raise ValueError("Study plan not found")
 
-        topic = f"{study_plan.model_dump_json()}"
-
-        num_questions = gen_request.num_questions
-        difficulty = gen_request.difficulty
-        instructions = gen_request.description or ""
-
         proposal = self.gemini_service.generate_quiz_proposal(
-            instructions=instructions,
-            topic=topic,
-            num_questions=num_questions,
-            difficulty=difficulty,
+            ignore_base_prompt=gen_request.ignore_base_prompt,
+            study_plan=gen_request.study_plan,
+            extra_instructions=gen_request.extra_instructions,
+            num_questions=gen_request.num_questions,
+            difficulty=gen_request.difficulty,
         )
         if not proposal:
             raise ValueError("Failed to generate quiz")

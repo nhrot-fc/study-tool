@@ -29,7 +29,7 @@ async def domain_exception_handler(_request: Request, exc: DomainException):
             "error": {
                 "code": exc.code,
                 "message": exc.message,
-                "details": exc.details,
+                "detail": exc.detail,
             }
         },
     )
@@ -49,7 +49,7 @@ async def pydantic_validation_exception_handler(
             "error": {
                 "code": "VALIDATION_ERROR",
                 "message": "Validation error",
-                "details": exc.errors(include_url=False),
+                "detail": exc.errors(include_url=False),
             }
         },
     )

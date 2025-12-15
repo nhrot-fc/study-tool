@@ -67,9 +67,10 @@ async def generate_study_plan(
         ) from None
 
     proposal = gemini_service.generate_study_plan_proposal(
-        message=request.message,
-        topic=request.topic,
-        existing_proposal=request.proposal,
+        ignore_base_prompt=request.ignore_base_prompt,
+        ignore_proposal=request.ignore_proposal,
+        extra_instructions=request.extra_instructions,
+        proposal=request.proposal,
     )
 
     if not proposal:

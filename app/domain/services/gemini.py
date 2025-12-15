@@ -5,7 +5,7 @@ from google.genai import types
 
 from app.core.config import get_settings
 from app.domain.schemas.quiz import QuizProposal
-from app.domain.schemas.study_plan import StudyPlanProposal
+from app.domain.schemas.study_plan import StudyPlanProposal, StudyPlanReadDetail
 
 
 class GeminiService:
@@ -49,64 +49,87 @@ class GeminiService:
 
     def generate_study_plan_proposal(
         self,
-        message: str,
-        topic: str | None = None,
-        existing_proposal: StudyPlanProposal | None = None,
+        ignore_base_prompt: bool,
+        ignore_proposal: bool,
+        extra_instructions: str,
+        proposal: StudyPlanProposal,
     ) -> StudyPlanProposal | None:
         schema = StudyPlanProposal.model_json_schema()
         settings = get_settings()
         max_depth = settings.STUDY_PLAN_MAX_DEPTH
 
         system_instruction = """
-        You are an expert study plan creator.
-        Your goal is to create comprehensive and structured learning paths.
+        You are a prestigious Academic Curriculum Designer
+        specializing in higher education.
+        Your task is to create structured, university-level study plans (syllabi).
+
+        **Core Principles:**
+        1. **Academic Rigor:** Base the structure and content on curricula
+        from institutions (MIT, Oxford, Cambridge, ITMO, USP, Stanford).
+        2. **Conciseness:** Be extremely brevity-oriented. Descriptions must be short,
+        direct, and summary-style (like a course catalog).
+        3. **Referencing:** Prioritize standard academic textbooks, papers,
+        or recognized lectures in your references.
         """
 
-        if existing_proposal:
+        if ignore_base_prompt:
+            system_instruction = ""
+
+        if not ignore_proposal:
             task_instruction = f"""
             ## Task
-            The user wants to modify an existing study plan.
-            Update the plan according to the instructions.
-
-            ## Context
-            Topic: {topic or message}
-            User Instruction: {message}
-
-            ## Current Plan
-            {existing_proposal.model_dump_json(indent=2)}
+            The user wants to modify the existing study plan.
+            Maintain the academic structure, strict brevity, and reference style.
+            ## Current Plan (To be modified)
+            {proposal.model_dump_json(indent=2)}
             """
         else:
-            task_instruction = f"""
+            task_instruction = """
             ## Task
-            Generate a new study plan based on the topic and instructions.
+            Generate a study plan based on the user's request.
+            """
 
-            ## Context
-            Topic: {topic or message}
-            User Instruction: {message}
+        if extra_instructions:
+            task_instruction += f"""
+            ## Context / Additional Instructions
+            {extra_instructions}
             """
 
         constraints = f"""
-        ## Constraints
+        ## Constraints & Formatting Rules
         1. **Output Format**:
-            Return a single valid JSON object that strictly follows the provided schema.
-        2. **Recursive Structure**:
-            Sections can be nested. You may create subsections (children)
-            up to a maximum depth of {max_depth} to organize the content logically.
-        3. **Content**: Break down the topic into manageable sections.
-        4. **Estimations**: Fill "duration_minutes" with realistic time estimates.
+            Return a single valid JSON object strictly following the provided schema.
+
+        2. **Description Style (CRITICAL)**:
+            - Keep descriptions **under 40 words**.
+            - Use active verbs and technical terminology.
+            - Avoid "fluff" phrases like "In this section we will learn about...".
+            Instead use: "Analysis of [Topic] covering [Concept A] and [Concept B]."
+
+        3. **Structure**:
+            - Nest sections logically up to a maximum depth of {max_depth}.
+            - Ensure a logical progression (e.g., Foundations ->
+            Core Concepts -> Advanced Applications).
+
+        4. **References**:
+            - Where applicable in the schema, suggest real,
+            verifiable academic sources (books with authors, seminal papers,
+            or specific university course codes like 'MIT 6.006').
+
+        5. **Estimations**: "duration_minutes" must be realistic
+        for university-level study sessions.
 
         ## JSON Schema
         {json.dumps(schema, indent=2)}
         """
 
         prompt = f"{system_instruction}\n\n{task_instruction}\n\n{constraints}"
-
         response_text = self.generate_json(prompt)
+
         if not response_text:
             return None
 
         try:
-            # Clean up potential markdown code blocks if Gemini adds them
             cleaned_text = response_text.strip()
             if cleaned_text.startswith("```json"):
                 cleaned_text = cleaned_text[7:]
@@ -123,46 +146,80 @@ class GeminiService:
 
     def generate_quiz_proposal(
         self,
-        instructions: str,
-        topic: str,
-        num_questions: int = 5,
-        difficulty: float = 0.5,
+        ignore_base_prompt: bool,
+        study_plan: StudyPlanReadDetail,
+        extra_instructions: str,
+        num_questions: int,
+        difficulty: float,
     ) -> QuizProposal | None:
         schema = QuizProposal.model_json_schema()
 
-        system_instruction = """
-        You are an expert academic quiz creator.
-        Your goal is to create challenging, educational, and rigorous quizzes
-        based on the provided topic, similar to questions found in academic textbooks.
+        sections_context = f"""## Curriculum Description:
+        {study_plan.model_dump_json(indent=2)}
         """
+
+        if difficulty < 4.0:
+            cognitive_focus = """Focus primarily on **Recall** (definitions, facts)
+            and **Comprehension** (explaining concepts)."""
+        elif difficulty < 7.0:
+            cognitive_focus = """Focus on **Application**
+            (solving problems, using formulas) and
+            **Analysis** (comparing components, identifying errors)."""
+        else:
+            cognitive_focus = """Focus on **Evaluation**
+            and **Synthesis** (complex scenarios,
+            multi-step deduction, critical judgement)."""
+
+        system_instruction = """
+        You are a strict University Examination Board creating a final exam.
+        Your goal is to assess student mastery through objective,
+        precise multiple-choice questions.
+        **Design Philosophy:**
+        1. **Objectivity:** Every question can have multiple correct answers.
+        Avoid opinions or vague "implications".
+        2. **Bloom's Taxonomy:** Adhere to the requested cognitive complexity
+        (Recall vs. Analysis).
+        3. **Distractors:** Wrong options must be plausible errors
+        (common misconceptions), not obviously fake or silly answers.
+        4. **Format:** Use standard academic stems: "Calculate...", "Identify...",
+        "Which of the following describes...", "Analyze the relationship between...".
+        """
+        if ignore_base_prompt:
+            system_instruction = ""
 
         task_instruction = f"""
         ## Task
-        Generate a quiz with {num_questions} questions based on the topic: {topic}.
-        The difficulty level should be around {difficulty} (on a scale of 0.0 to 10.0).
+        Generate a {num_questions}-question quiz for the following Study Plan.
 
-        ## Context
-        Topic:
-        {topic}
+        ## Difficulty Calibration
+        Target Difficulty: {difficulty}/10.0
+        Instruction: {cognitive_focus}
+
+        ## Study Plan Scope (Source Material)
+        **Topic:** {study_plan.title}
+        **Detailed Curriculum:**
+        {sections_context}
         """
-        if instructions:
+
+        if extra_instructions:
             task_instruction += f"""
-        ## Additional Instructions
-        {instructions}
-        """
+            ## Additional User Constraints
+            {extra_instructions}
+            """
 
         constraints = f"""
-        ## Constraints
-        1. **Output Format**:
-            Return a single valid JSON object that strictly follows the provided schema.
-        2. **Content**:
-            - Create {num_questions} multiple-choice questions.
-            - Each question should have 5 choices.
-            - Multiple options are allowed but it should be described (is_correct=true).
-            - Provide a clear and concise title and description for the quiz.
-            - Questions should be formal, academic, and test understanding.
-            - Better if questions are directly extracted from academic sources.
-
+        ## Constraints & Strict Formatting
+        1. **Output**: Return a single valid JSON object matching the schema.
+        2. **Question Structure**:
+            - **Stem**: The question text must be self-contained. Avoid "What about X?".
+            Instead use "Given condition Y, what is the value of X?"
+            - **Options**: Provide exactly 5 options per question.
+            - Multiple Correct answers are allowed.
+        3. **Content Rules**:
+            - **No Open-Endedness**: Do not ask "What are the benefits of...".
+            Ask "Which of the following is a primary benefit of... according to X?"
+            - **Scenarios**: For high difficulty, use small case studies
+            or code snippets (if technical) in the description.
         ## JSON Schema
         {json.dumps(schema, indent=2)}
         """
@@ -174,7 +231,6 @@ class GeminiService:
             return None
 
         try:
-            # Clean up potential markdown code blocks if Gemini adds them
             cleaned_text = response_text.strip()
             if cleaned_text.startswith("```json"):
                 cleaned_text = cleaned_text[7:]

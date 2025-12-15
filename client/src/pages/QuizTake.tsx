@@ -183,9 +183,10 @@ export default function QuizTake() {
             <Card.Root key={question.id}>
               <Card.Body>
                 <VStack align="start" gap={4}>
-                  <Text fontWeight="bold" fontSize="lg">
+                  <Text fontWeight="bold" fontSize="lg" color="gray.400">
                     {index + 1}. {question.title}
                   </Text>
+                  <Text>{question.description}</Text>
                   <RadioGroup.Root
                     value={answers[question.id] || ""}
                     onValueChange={(e) =>

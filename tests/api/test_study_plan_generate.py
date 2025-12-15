@@ -56,8 +56,15 @@ async def test_generate_study_plan(client: AsyncClient, user_service: UserServic
 
     # Generate Plan
     generate_data = {
-        "message": "Teach me Python",
-        "topic": "Python",
+        "ignore_base_prompt": False,
+        "ignore_proposal": False,
+        "extra_instructions": "",
+        "proposal": {
+            "title": "My Plan",
+            "description": "Plan Description",
+            "sections": [],
+            "resources": [],
+        },
     }
 
     response = await client.post(
@@ -72,9 +79,10 @@ async def test_generate_study_plan(client: AsyncClient, user_service: UserServic
 
     # Verify mock was called
     mock_gemini_service.generate_study_plan_proposal.assert_called_with(
-        message="Teach me Python",
-        topic="Python",
-        existing_proposal=None,
+        ignore_base_prompt=False,
+        ignore_proposal=False,
+        extra_instructions="",
+        proposal=StudyPlanProposal.model_validate(generate_data["proposal"]),
     )
 
 
@@ -105,7 +113,9 @@ async def test_generate_study_plan_refine(
 
     # Refine Plan
     generate_data = {
-        "message": "Add a section on testing",
+        "ignore_base_prompt": False,
+        "ignore_proposal": False,
+        "extra_instructions": "Add a section on testing",
         "proposal": existing_proposal,
     }
 
@@ -116,8 +126,9 @@ async def test_generate_study_plan_refine(
     assert response.status_code == 200
 
     # Verify mock call
-    # Note: We need to check if existing_proposal matches what we sent.
-    args, kwargs = mock_gemini_service.generate_study_plan_proposal.call_args
-    assert kwargs["message"] == "Add a section on testing"
-    assert kwargs["existing_proposal"] is not None
-    assert kwargs["existing_proposal"].title == "Old Plan"
+    mock_gemini_service.generate_study_plan_proposal.assert_called_with(
+        ignore_base_prompt=False,
+        ignore_proposal=False,
+        extra_instructions="Add a section on testing",
+        proposal=StudyPlanProposal.model_validate(generate_data["proposal"]),
+    )

@@ -135,8 +135,8 @@ async def test_register_existing_email(client: AsyncClient, user_service: UserSe
             "password": "password123",
         },
     )
-    assert response.status_code == 400
-    assert "already exists" in response.json()["detail"]
+    assert response.status_code == 409
+    assert "already exists" in response.json()["error"]["message"]
 
 
 @pytest.mark.asyncio
