@@ -93,3 +93,9 @@ class QuizResult(QuizRead):
     total_questions: int
     correct_answers: int
     passed: bool
+
+
+class QuizGenerateRequest(BaseModel):
+    num_questions: int
+    difficulty: float
+    description: str | None = None

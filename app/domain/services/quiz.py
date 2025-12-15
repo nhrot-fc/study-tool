@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from app.domain.schemas.quiz import QuestionUserSelectedOptions
+from app.domain.schemas.quiz import QuestionUserSelectedOptions, QuizGenerateRequest
 from app.domain.services.gemini import GeminiService
 from app.persistence.model.quiz import Question, QuestionOption, Quiz, QuizUserAnswer
 from app.persistence.repository.quiz import QuizRepository
@@ -19,7 +19,12 @@ class QuizService:
         self.study_plan_repo = study_plan_repo
         self.gemini_service = gemini_service
 
-    async def create_quiz(self, study_plan_id: UUID, user_id: UUID) -> Quiz:
+    async def create_quiz(
+        self,
+        study_plan_id: UUID,
+        user_id: UUID,
+        gen_request: QuizGenerateRequest,
+    ) -> Quiz:
         existing = await self.quiz_repo.get_by_plan_and_user(study_plan_id, user_id)
         if existing:
             return existing
@@ -28,11 +33,17 @@ class QuizService:
         if not study_plan:
             raise ValueError("Study plan not found")
 
-        topic = f"{study_plan.title}: {study_plan.description}"
+        topic = f"{study_plan.model_dump_json()}"
+
+        num_questions = gen_request.num_questions
+        difficulty = gen_request.difficulty
+        instructions = gen_request.description or ""
+
         proposal = self.gemini_service.generate_quiz_proposal(
-            instructions="Create a quiz to test understanding of this study plan.",
+            instructions=instructions,
             topic=topic,
-            num_questions=5,
+            num_questions=num_questions,
+            difficulty=difficulty,
         )
         if not proposal:
             raise ValueError("Failed to generate quiz")

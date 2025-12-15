@@ -122,25 +122,33 @@ class GeminiService:
             return None
 
     def generate_quiz_proposal(
-        self, instructions: str, topic: str, num_questions: int = 5
+        self,
+        instructions: str,
+        topic: str,
+        num_questions: int = 5,
+        difficulty: float = 0.5,
     ) -> QuizProposal | None:
         schema = QuizProposal.model_json_schema()
 
         system_instruction = """
-        You are an expert quiz creator.
-        Your goal is to create challenging and educational quizzes
-        based on the provided topic.
+        You are an expert academic quiz creator.
+        Your goal is to create challenging, educational, and rigorous quizzes
+        based on the provided topic, similar to questions found in academic textbooks.
         """
 
         task_instruction = f"""
         ## Task
         Generate a quiz with {num_questions} questions based on the topic: {topic}.
+        The difficulty level should be around {difficulty} (on a scale of 0.0 to 10.0).
 
         ## Context
-        Topic: {topic}
-
-        ## User Instructions
-        Instructions: {instructions}
+        Topic:
+        {topic}
+        """
+        if instructions:
+            task_instruction += f"""
+        ## Additional Instructions
+        {instructions}
         """
 
         constraints = f"""
@@ -149,9 +157,11 @@ class GeminiService:
             Return a single valid JSON object that strictly follows the provided schema.
         2. **Content**:
             - Create {num_questions} multiple-choice questions.
-            - Each question should have 4 choices.
-            - Exactly one choice must be correct (is_correct=true).
+            - Each question should have 5 choices.
+            - Multiple options are allowed but it should be described (is_correct=true).
             - Provide a clear and concise title and description for the quiz.
+            - Questions should be formal, academic, and test understanding.
+            - Better if questions are directly extracted from academic sources.
 
         ## JSON Schema
         {json.dumps(schema, indent=2)}

@@ -8,6 +8,7 @@ from app.core.dependencies import (
     get_quiz_service,
 )
 from app.domain.schemas.quiz import (
+    QuizGenerateRequest,
     QuizRead,
     QuizReadDetail,
     QuizReadPublic,
@@ -26,11 +27,12 @@ router = APIRouter()
 )
 async def create_quiz(
     plan_id: UUID,
+    request: QuizGenerateRequest,
     current_user: CurrentUser,
     service: Annotated[QuizService, Depends(get_quiz_service)],
 ) -> QuizRead:
     try:
-        quiz = await service.create_quiz(plan_id, current_user.id)
+        quiz = await service.create_quiz(plan_id, current_user.id, request)
         return QuizRead.model_validate(quiz)
     except ValueError as e:
         raise HTTPException(
