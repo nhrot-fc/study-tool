@@ -11,6 +11,7 @@ if TYPE_CHECKING:
         SectionProgress,
         StudyPlanProgress,
     )
+    from app.persistence.model.quiz import Quiz
     from app.persistence.model.study_plan import StudyPlan
     from app.persistence.model.token import RefreshToken
 
@@ -25,6 +26,7 @@ class User(BaseEntity, table=True):
 
     refresh_tokens: list["RefreshToken"] = Relationship(back_populates="user")
     study_plans: list["StudyPlan"] = Relationship(back_populates="user")
+    quizzes: list["Quiz"] = Relationship(back_populates="user")
 
     study_plan_progresses: list["StudyPlanProgress"] = Relationship(
         back_populates="user"

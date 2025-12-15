@@ -1,0 +1,41 @@
+from uuid import UUID
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from sqlmodel import col
+
+from app.persistence.model.quiz import Question, Quiz
+from app.persistence.repository.base import BaseRepository
+
+
+class QuizRepository(BaseRepository[Quiz]):
+    def __init__(self, session: AsyncSession):
+        super().__init__(session, Quiz)
+
+    async def get_by_plan_and_user(self, plan_id: UUID, user_id: UUID) -> Quiz | None:
+        statement = (
+            select(Quiz)
+            .where(col(Quiz.study_plan_id) == plan_id, col(Quiz.user_id) == user_id)
+            .options(selectinload(Quiz.questions).selectinload(Question.options))  # type: ignore
+        )
+        result = await self.session.execute(statement)
+        return result.scalars().first()
+
+    async def get_with_questions(self, quiz_id: UUID) -> Quiz | None:
+        statement = (
+            select(Quiz)
+            .where(col(Quiz.id) == quiz_id)
+            .options(selectinload(Quiz.questions).selectinload(Question.options))  # type: ignore
+        )
+        result = await self.session.execute(statement)
+        return result.scalars().first()
+
+    async def list_by_plan_and_user(self, plan_id: UUID, user_id: UUID) -> list[Quiz]:
+        statement = (
+            select(Quiz)
+            .where(col(Quiz.study_plan_id) == plan_id, col(Quiz.user_id) == user_id)
+            .order_by(col(Quiz.created_at).desc())
+        )
+        result = await self.session.execute(statement)
+        return list(result.scalars().all())

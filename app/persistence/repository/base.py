@@ -26,9 +26,6 @@ class BaseRepository[ModelType: BaseEntity]:
     async def get(
         self, *where_clauses: Any, skip: int = 0, limit: int = 100
     ) -> tuple[list[ModelType], int]:
-        """
-        Returns a tuple with (items, total_count)
-        """
         # Get items
         statement = select(self.model).where(*where_clauses).offset(skip).limit(limit)
         result = await self.session.execute(statement)
@@ -69,9 +66,6 @@ class BaseRepository[ModelType: BaseEntity]:
         return False
 
     async def delete_by_ids(self, ids: list[Any]) -> None:
-        """
-        Deletes multiple records by their IDs.
-        """
         if not ids:
             return
         statement = delete(self.model).where(col(self.model.id).in_(ids))

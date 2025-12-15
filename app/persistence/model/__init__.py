@@ -5,6 +5,12 @@ from app.persistence.model.progress import (
     SectionProgress,
     StudyPlanProgress,
 )
+from app.persistence.model.quiz import (
+    Question,
+    QuestionOption,
+    Quiz,
+    QuizUserAnswer,
+)
 from app.persistence.model.resource import Resource
 from app.persistence.model.section import Section
 from app.persistence.model.study_plan import StudyPlan
@@ -12,6 +18,10 @@ from app.persistence.model.user import User
 
 __all__ = [
     "BaseEntity",
+    "Question",
+    "QuestionOption",
+    "Quiz",
+    "QuizUserAnswer",
     "Resource",
     "ResourceProgress",
     "Section",

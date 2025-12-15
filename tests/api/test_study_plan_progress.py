@@ -57,9 +57,7 @@ async def test_api_complex_progress_updates(
         "resources": [],
     }
 
-    create_res = await client.post(
-        "/api/v1/plan/", json=plan_data, headers=headers
-    )
+    create_res = await client.post("/api/v1/plan/", json=plan_data, headers=headers)
     assert create_res.status_code == 201
     plan_id = create_res.json()["id"]
 
@@ -157,9 +155,7 @@ async def test_api_get_plan_authenticated_vs_anonymous(
         "sections": [{"title": "S1", "resources": [], "children": []}],
         "resources": [],
     }
-    create_res = await client.post(
-        "/api/v1/plan/", json=plan_data, headers=headers
-    )
+    create_res = await client.post("/api/v1/plan/", json=plan_data, headers=headers)
     plan_id = create_res.json()["id"]
 
     # 3. Get Plan as Anonymous (No Auth Header)
@@ -190,9 +186,7 @@ async def test_api_get_plan_authenticated_vs_anonymous(
     token_other = login_other.json()["access_token"]
     headers_other = {"Authorization": f"Bearer {token_other}"}
 
-    other_res = await client.get(
-        f"/api/v1/plan/{plan_id}", headers=headers_other
-    )
+    other_res = await client.get(f"/api/v1/plan/{plan_id}", headers=headers_other)
     assert other_res.status_code == 200
     other_data = other_res.json()
     assert other_data["progress"] is not None

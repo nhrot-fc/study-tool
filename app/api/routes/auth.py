@@ -24,11 +24,11 @@ async def register(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="The user with this email already exists in the system.",
         )
-    user = await user_service.create_user(UserCreate(
-        username=user_in.username,
-        email=user_in.email,
-        password=user_in.password
-    ))
+    user = await user_service.create_user(
+        UserCreate(
+            username=user_in.username, email=user_in.email, password=user_in.password
+        )
+    )
     return UserRead.model_validate(user)
 
 

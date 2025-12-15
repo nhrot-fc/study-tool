@@ -44,7 +44,7 @@ async def test_get_with_details(
     await session.refresh(plan)
 
     # 3. Fetch with details
-    fetched_plan = await study_plan_repository.get_with_details(plan.id)
+    fetched_plan = await study_plan_repository.get_study_plan_detailed(plan.id)
 
     assert fetched_plan is not None
     assert fetched_plan.id == plan.id

@@ -43,9 +43,7 @@ async def test_create_study_plan(client: AsyncClient, user_service: UserService)
         ],
     }
 
-    response = await client.post(
-        "/api/v1/plan/", json=plan_data, headers=headers
-    )
+    response = await client.post("/api/v1/plan/", json=plan_data, headers=headers)
     assert response.status_code == 201
     data = response.json()
     assert data["title"] == "My Awesome Plan"
@@ -76,9 +74,7 @@ async def test_get_study_plan_detail(client: AsyncClient, user_service: UserServ
         "user_id": str(user_data.id),
         "sections": [{"title": "S1"}],
     }
-    create_res = await client.post(
-        "/api/v1/plan/", json=plan_data, headers=headers
-    )
+    create_res = await client.post("/api/v1/plan/", json=plan_data, headers=headers)
     plan_id = create_res.json()["id"]
 
     # Get detail
@@ -107,9 +103,7 @@ async def test_fork_study_plan(client: AsyncClient, user_service: UserService):
         "user_id": str(user1_data.id),
         "sections": [{"title": "S1"}],
     }
-    create_res = await client.post(
-        "/api/v1/plan/", json=plan_data, headers=headers1
-    )
+    create_res = await client.post("/api/v1/plan/", json=plan_data, headers=headers1)
     plan_id = create_res.json()["id"]
 
     # User 2 forks the plan
@@ -122,9 +116,7 @@ async def test_fork_study_plan(client: AsyncClient, user_service: UserService):
     token2 = login2.json()["access_token"]
     headers2 = {"Authorization": f"Bearer {token2}"}
 
-    fork_res = await client.post(
-        f"/api/v1/plan/{plan_id}/fork", headers=headers2
-    )
+    fork_res = await client.post(f"/api/v1/plan/{plan_id}/fork", headers=headers2)
     assert fork_res.status_code == 201
     fork_data = fork_res.json()
     assert fork_data["title"] == "Copy of Original"
@@ -173,9 +165,7 @@ async def test_list_user_study_plans_by_user_id(
     token2 = login2.json()["access_token"]
     headers2 = {"Authorization": f"Bearer {token2}"}
 
-    response = await client.get(
-        f"/api/v1/plan/user/{user_data.id}", headers=headers2
-    )
+    response = await client.get(f"/api/v1/plan/user/{user_data.id}", headers=headers2)
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
@@ -183,13 +173,15 @@ async def test_list_user_study_plans_by_user_id(
 
 
 @pytest.mark.asyncio
-async def test_update_study_plan_endpoint(client: AsyncClient, user_service: UserService):
+async def test_update_study_plan_endpoint(
+    client: AsyncClient, user_service: UserService
+):
     # 1. Create User
     user_in = UserCreate(
         email="updater@example.com", username="updater", password="password123"
     )
     user = await user_service.create_user(user_in)
-    
+
     login_res = await client.post(
         "/api/v1/auth/login",
         json={"email": "updater@example.com", "password": "password123"},
@@ -204,9 +196,7 @@ async def test_update_study_plan_endpoint(client: AsyncClient, user_service: Use
         "user_id": str(user.id),
         "sections": [{"title": "S1", "resources": []}],
     }
-    create_res = await client.post(
-        "/api/v1/plan/", json=plan_data, headers=headers
-    )
+    create_res = await client.post("/api/v1/plan/", json=plan_data, headers=headers)
     plan_id = create_res.json()["id"]
     s1_id = create_res.json()["sections"][0]["id"]
 
@@ -214,27 +204,20 @@ async def test_update_study_plan_endpoint(client: AsyncClient, user_service: Use
     update_data = {
         "title": "Updated",
         "sections": [
-            {
-                "id": s1_id,
-                "title": "S1 Updated",
-                "resources": []
-            },
-            {
-                "title": "S2 New",
-                "resources": []
-            }
-        ]
+            {"id": s1_id, "title": "S1 Updated", "resources": []},
+            {"title": "S2 New", "resources": []},
+        ],
     }
-    
+
     update_res = await client.put(
         f"/api/v1/plan/{plan_id}", json=update_data, headers=headers
     )
-    
+
     assert update_res.status_code == 200
     data = update_res.json()
     assert data["title"] == "Updated"
     assert len(data["sections"]) == 2
-    
+
     titles = {s["title"] for s in data["sections"]}
     assert "S1 Updated" in titles
     assert "S2 New" in titles
@@ -275,8 +258,6 @@ async def test_create_study_plan_too_deep(
         "sections": [section],
     }
 
-    response = await client.post(
-        "/api/v1/plan/", json=plan_data, headers=headers
-    )
+    response = await client.post("/api/v1/plan/", json=plan_data, headers=headers)
     assert response.status_code == 400
     assert "Maximum section nesting depth of 5 exceeded" in response.json()["detail"]

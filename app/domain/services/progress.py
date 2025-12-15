@@ -33,7 +33,7 @@ class ProgressService:
         if existing:
             return existing
 
-        plan = await self.study_plan_repo.get_with_details(study_plan_id)
+        plan = await self.study_plan_repo.get_study_plan_detailed(study_plan_id)
         if not plan:
             raise ValueError("Study plan not found")
 
@@ -172,7 +172,7 @@ class ProgressService:
     async def _recalculate_study_plan_progress(
         self, sp_progress: StudyPlanProgress
     ) -> None:
-        plan_details = await self.study_plan_repo.get_with_details(
+        plan_details = await self.study_plan_repo.get_study_plan_detailed(
             sp_progress.study_plan_id
         )
         if not plan_details:
@@ -238,7 +238,7 @@ class ProgressService:
         if not sp_progress:
             return
 
-        plan = await self.study_plan_repo.get_with_details(study_plan_id)
+        plan = await self.study_plan_repo.get_study_plan_detailed(study_plan_id)
         if not plan:
             return
 

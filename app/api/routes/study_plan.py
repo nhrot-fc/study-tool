@@ -2,14 +2,13 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import (
     CurrentUser,
     CurrentUserOptional,
     get_gemini_service,
     get_progress_service,
-    get_session,
+    get_study_plan_service,
     get_user_service,
 )
 from app.domain.schemas.progress import StudyPlanProgressRead
@@ -26,16 +25,8 @@ from app.domain.services.gemini import GeminiService
 from app.domain.services.progress import ProgressService
 from app.domain.services.study_plan import StudyPlanService
 from app.domain.services.user import UserService
-from app.persistence.repository.study_plan import StudyPlanRepository
 
 router = APIRouter()
-
-
-def get_study_plan_service(
-    session: Annotated[AsyncSession, Depends(get_session)],
-) -> StudyPlanService:
-    repo = StudyPlanRepository(session)
-    return StudyPlanService(repo)
 
 
 @router.post(
@@ -94,7 +85,7 @@ async def get_study_plan(
     progress_service: Annotated[ProgressService, Depends(get_progress_service)],
     current_user: CurrentUserOptional,
 ) -> StudyPlanReadDetailWithProgress:
-    plan = await service.get_study_plan_by_id(plan_id)
+    plan = await service.get_study_plan_detailed(plan_id)
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Study plan not found"
@@ -119,7 +110,7 @@ async def update_study_plan(
     service: Annotated[StudyPlanService, Depends(get_study_plan_service)],
     progress_service: Annotated[ProgressService, Depends(get_progress_service)],
 ) -> StudyPlanReadDetail:
-    plan = await service.get_study_plan_by_id(plan_id)
+    plan = await service.get_study_plan_detailed(plan_id)
     if not plan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Study plan not found"

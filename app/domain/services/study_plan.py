@@ -72,18 +72,21 @@ class StudyPlanService:
             study_plan.sections.append(self._create_section_entity(sec_in))
 
         created_plan = await self.study_plan_repository.create(study_plan)
-        item = await self.study_plan_repository.get_with_details(created_plan.id)
+        item = await self.study_plan_repository.get_study_plan_detailed(created_plan.id)
         if item is None:
             raise Exception("Failed to retrieve created study plan")
         return item
+
+    async def get_by_id(self, id: UUID) -> StudyPlan | None:
+        return await self.study_plan_repository.get_by_id(id)
 
     async def get_user_study_plans(
         self, user_id: UUID, skip: int = 0, limit: int = 100
     ) -> tuple[list[StudyPlan], int]:
         return await self.study_plan_repository.get_by_user(user_id, skip, limit)
 
-    async def get_study_plan_by_id(self, id: UUID) -> StudyPlan | None:
-        plan = await self.study_plan_repository.get_with_details(id)
+    async def get_study_plan_detailed(self, id: UUID) -> StudyPlan | None:
+        plan = await self.study_plan_repository.get_study_plan_detailed(id)
         return plan
 
     def _copy_resource(self, resource: Resource) -> Resource:
@@ -112,7 +115,7 @@ class StudyPlanService:
     async def fork_study_plan(
         self, original_plan_id: UUID, user_id: UUID
     ) -> StudyPlan | None:
-        original_plan = await self.study_plan_repository.get_with_details(
+        original_plan = await self.study_plan_repository.get_study_plan_detailed(
             original_plan_id
         )
         if not original_plan:
@@ -132,7 +135,7 @@ class StudyPlanService:
             new_plan.sections.append(self._copy_section(sec))
 
         created_plan = await self.study_plan_repository.create(new_plan)
-        item = await self.study_plan_repository.get_with_details(created_plan.id)
+        item = await self.study_plan_repository.get_study_plan_detailed(created_plan.id)
         if item is None:
             raise Exception("Failed to retrieve created study plan")
         return item
@@ -143,7 +146,7 @@ class StudyPlanService:
         update_in: StudyPlanUpdate,
         progress_service: ProgressService,
     ) -> StudyPlan:
-        plan = await self.study_plan_repository.get_with_details(plan_id)
+        plan = await self.study_plan_repository.get_study_plan_detailed(plan_id)
         if not plan:
             raise ValueError("Study plan not found")
 

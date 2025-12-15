@@ -4,6 +4,7 @@ from google import genai
 from google.genai import types
 
 from app.core.config import get_settings
+from app.domain.schemas.quiz import QuizProposal
 from app.domain.schemas.study_plan import StudyPlanProposal
 
 
@@ -116,6 +117,64 @@ class GeminiService:
 
             data = json.loads(cleaned_text)
             return StudyPlanProposal.model_validate(data)
+        except Exception as e:
+            print(f"Error parsing Gemini response: {e}")
+            return None
+
+    def generate_quiz_proposal(
+        self, instructions: str, topic: str, num_questions: int = 5
+    ) -> QuizProposal | None:
+        schema = QuizProposal.model_json_schema()
+
+        system_instruction = """
+        You are an expert quiz creator.
+        Your goal is to create challenging and educational quizzes
+        based on the provided topic.
+        """
+
+        task_instruction = f"""
+        ## Task
+        Generate a quiz with {num_questions} questions based on the topic: {topic}.
+
+        ## Context
+        Topic: {topic}
+
+        ## User Instructions
+        Instructions: {instructions}
+        """
+
+        constraints = f"""
+        ## Constraints
+        1. **Output Format**:
+            Return a single valid JSON object that strictly follows the provided schema.
+        2. **Content**:
+            - Create {num_questions} multiple-choice questions.
+            - Each question should have 4 choices.
+            - Exactly one choice must be correct (is_correct=true).
+            - Provide a clear and concise title and description for the quiz.
+
+        ## JSON Schema
+        {json.dumps(schema, indent=2)}
+        """
+
+        prompt = f"{system_instruction}\n\n{task_instruction}\n\n{constraints}"
+
+        response_text = self.generate_json(prompt)
+        if not response_text:
+            return None
+
+        try:
+            # Clean up potential markdown code blocks if Gemini adds them
+            cleaned_text = response_text.strip()
+            if cleaned_text.startswith("```json"):
+                cleaned_text = cleaned_text[7:]
+            elif cleaned_text.startswith("```"):
+                cleaned_text = cleaned_text[3:]
+            if cleaned_text.endswith("```"):
+                cleaned_text = cleaned_text[:-3]
+
+            data = json.loads(cleaned_text)
+            return QuizProposal.model_validate(data)
         except Exception as e:
             print(f"Error parsing Gemini response: {e}")
             return None

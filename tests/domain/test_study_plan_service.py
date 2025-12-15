@@ -100,22 +100,24 @@ async def test_get_user_study_plans(study_plan_service: StudyPlanService, user):
 
 
 @pytest.mark.asyncio
-async def test_get_study_plan_by_id_success(study_plan_service: StudyPlanService, user):
+async def test_get_study_plan_detailed_success(
+    study_plan_service: StudyPlanService, user
+):
     created = await study_plan_service.create_study_plan(
         StudyPlanCreate(title="Target", description="desc", user_id=user.id)
     )
 
-    fetched = await study_plan_service.get_study_plan_by_id(created.id)
+    fetched = await study_plan_service.get_study_plan_detailed(created.id)
     assert fetched is not None
     assert fetched.id == created.id
     assert fetched.title == "Target"
 
 
 @pytest.mark.asyncio
-async def test_get_study_plan_by_id_not_found(
+async def test_get_study_plan_detailed_not_found(
     study_plan_service: StudyPlanService,
 ):
-    fetched = await study_plan_service.get_study_plan_by_id(uuid4())
+    fetched = await study_plan_service.get_study_plan_detailed(uuid4())
     assert fetched is None
 
 
@@ -145,7 +147,7 @@ async def test_create_study_plan_deeply_nested(
     created_plan = await study_plan_service.create_study_plan(plan_in)
 
     # Fetch again to ensure persistence and retrieval works
-    fetched_plan = await study_plan_service.get_study_plan_by_id(created_plan.id)
+    fetched_plan = await study_plan_service.get_study_plan_detailed(created_plan.id)
 
     assert fetched_plan is not None
     assert len(fetched_plan.sections) == 1
@@ -245,13 +247,15 @@ async def test_update_study_plan(
             SectionCreate(
                 title="S1",
                 resources=[
-                    ResourceCreate(title="R1", url="http://r1", type=ResourceType.ARTICLE)
+                    ResourceCreate(
+                        title="R1", url="http://r1", type=ResourceType.ARTICLE
+                    )
                 ],
             )
         ],
     )
     plan = await study_plan_service.create_study_plan(plan_in)
-    
+
     # Initialize progress
     await progress_service.initialize_study_plan_progress(user.id, plan.id)
 
@@ -259,7 +263,7 @@ async def test_update_study_plan(
     # Change title, modify S1 (change title), add S2
     s1_id = plan.sections[0].id
     r1_id = plan.sections[0].resources[0].id
-    
+
     update_in = StudyPlanUpdate(
         title="Updated Plan",
         sections=[
@@ -268,24 +272,17 @@ async def test_update_study_plan(
                 title="S1 Updated",
                 resources=[
                     ResourceUpsert(
-                        id=r1_id,
-                        title="R1",
-                        url="http://r1",
-                        type=ResourceType.ARTICLE
+                        id=r1_id, title="R1", url="http://r1", type=ResourceType.ARTICLE
                     )
-                ]
+                ],
             ),
             SectionUpsert(
                 title="S2",
                 resources=[
-                    ResourceUpsert(
-                        title="R2",
-                        url="http://r2",
-                        type=ResourceType.VIDEO
-                    )
-                ]
-            )
-        ]
+                    ResourceUpsert(title="R2", url="http://r2", type=ResourceType.VIDEO)
+                ],
+            ),
+        ],
     )
 
     updated_plan = await study_plan_service.update_study_plan(
@@ -294,12 +291,11 @@ async def test_update_study_plan(
 
     assert updated_plan.title == "Updated Plan"
     assert len(updated_plan.sections) == 2
-    
+
     s1 = next(s for s in updated_plan.sections if s.id == s1_id)
     assert s1.title == "S1 Updated"
-    
+
     s2 = next(s for s in updated_plan.sections if s.id != s1_id)
     assert s2.title == "S2"
     assert len(s2.resources) == 1
     assert s2.resources[0].title == "R2"
-

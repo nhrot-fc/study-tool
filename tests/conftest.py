@@ -8,11 +8,14 @@ from sqlmodel import SQLModel
 from app.core.config import get_settings
 from app.core.database import get_session
 from app.domain.services.auth import AuthService
+from app.domain.services.gemini import GeminiService
 from app.domain.services.progress import ProgressService
+from app.domain.services.quiz import QuizService
 from app.domain.services.study_plan import StudyPlanService
 from app.domain.services.user import UserService
 from app.main import app
 from app.persistence.repository.progress import ProgressRepository
+from app.persistence.repository.quiz import QuizRepository
 from app.persistence.repository.section import SectionRepository
 from app.persistence.repository.study_plan import StudyPlanRepository
 from app.persistence.repository.token import RefreshTokenRepository
@@ -104,3 +107,22 @@ def progress_service(
 @pytest.fixture
 def study_plan_service(study_plan_repository: StudyPlanRepository) -> StudyPlanService:
     return StudyPlanService(study_plan_repository)
+
+
+@pytest.fixture
+def quiz_repository(session: AsyncSession) -> QuizRepository:
+    return QuizRepository(session)
+
+
+@pytest.fixture
+def gemini_service() -> GeminiService:
+    return GeminiService()
+
+
+@pytest.fixture
+def quiz_service(
+    quiz_repository: QuizRepository,
+    study_plan_repository: StudyPlanRepository,
+    gemini_service: GeminiService,
+) -> QuizService:
+    return QuizService(quiz_repository, study_plan_repository, gemini_service)

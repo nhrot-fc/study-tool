@@ -37,7 +37,7 @@ class StudyPlanRepository(BaseRepository[StudyPlan]):
 
         return list(items), total
 
-    async def get_with_details(self, id: UUID) -> StudyPlan | None:
+    async def get_study_plan_detailed(self, id: UUID) -> StudyPlan | None:
         load_options = [selectinload(StudyPlan.resources)]  # type: ignore
         path = selectinload(StudyPlan.sections)  # type: ignore
         load_options.append(path)
