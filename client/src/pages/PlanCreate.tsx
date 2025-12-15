@@ -4,7 +4,6 @@ import {
   Button,
   Container,
   Heading,
-  Input,
   Textarea,
   VStack,
   Text,
@@ -17,13 +16,15 @@ import { useAuth } from "../hooks/use-auth";
 import { type StudyPlanProposal } from "../lib/types";
 import { LuSparkles, LuArrowLeft } from "react-icons/lu";
 import { Popover } from "../components/ui/popover";
+import { Switch } from "../components/ui/switch";
 
 export default function PlanCreate() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [topic, setTopic] = useState("");
   const [message, setMessage] = useState("");
+  const [ignoreBasePrompt, setIgnoreBasePrompt] = useState(false);
+  const [ignoreProposal, setIgnoreProposal] = useState(false);
   const [proposal, setProposal] = useState<StudyPlanProposal>({
     title: "",
     description: "",
@@ -33,13 +34,13 @@ export default function PlanCreate() {
   const [formKey, setFormKey] = useState(0);
 
   const handleGenerate = async () => {
-    if (!topic || !message) return;
+    if (!message) return;
     setIsGenerating(true);
     try {
       const result = await apiClient.generatePlanWithAI({
-        ignore_base_prompt: false,
-        ignore_proposal: false,
-        extra_instructions: `Topic: ${topic}\nDetails: ${message}`,
+        ignore_base_prompt: ignoreBasePrompt,
+        ignore_proposal: ignoreProposal,
+        extra_instructions: message,
         proposal,
       });
       setProposal(result);
@@ -101,20 +102,6 @@ export default function PlanCreate() {
                   <VStack gap={4} align="stretch">
                     <Heading size="sm">AI Assistant</Heading>
                     <Box>
-                      <Text mb={1} fontSize="sm" fontWeight="medium">
-                        Topic
-                      </Text>
-                      <Input
-                        size="sm"
-                        placeholder="e.g. React, Python"
-                        value={topic}
-                        onChange={(e) => setTopic(e.target.value)}
-                      />
-                    </Box>
-                    <Box>
-                      <Text mb={1} fontSize="sm" fontWeight="medium">
-                        Goals & Details
-                      </Text>
                       <Textarea
                         size="sm"
                         placeholder="Describe what you want to learn..."
@@ -123,12 +110,35 @@ export default function PlanCreate() {
                         rows={3}
                       />
                     </Box>
+                    <Box>
+                      <Text mb={1} fontSize="sm" fontWeight="medium">
+                        Options
+                      </Text>
+                      <VStack align="start" gap={2}>
+                        <Switch
+                          checked={ignoreProposal}
+                          onCheckedChange={(e) => setIgnoreProposal(e.checked)}
+                          size="sm"
+                        >
+                          Ignore current draft
+                        </Switch>
+                        <Switch
+                          checked={ignoreBasePrompt}
+                          onCheckedChange={(e) =>
+                            setIgnoreBasePrompt(e.checked)
+                          }
+                          size="sm"
+                        >
+                          Ignore base prompt
+                        </Switch>
+                      </VStack>
+                    </Box>
                     <Button
                       size="sm"
                       colorPalette="blue"
                       onClick={handleGenerate}
                       loading={isGenerating}
-                      disabled={!topic || !message}
+                      disabled={!message}
                     >
                       Generate
                     </Button>

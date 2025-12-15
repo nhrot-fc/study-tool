@@ -318,3 +318,10 @@ class StudyPlanService:
 
         section.resources = new_res_list
         return any_affected
+
+    async def delete_study_plan(self, plan_id: UUID) -> None:
+        plan = await self.study_plan_repository.get_by_id(plan_id)
+        if not plan:
+            raise ValueError("Study plan not found")
+
+        await self.study_plan_repository.soft_delete(plan)

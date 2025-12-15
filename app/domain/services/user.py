@@ -37,6 +37,7 @@ class UserService:
         self, search_username: str | None = None, skip: int = 0, limit: int = 100
     ) -> tuple[list[User], int]:
         filters = []
+        filters.append(col(User.active))
         if search_username:
             filters.append(col(User.username).ilike(f"%{search_username}%"))
 

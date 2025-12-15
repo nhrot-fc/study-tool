@@ -7,6 +7,7 @@ from sqlmodel import Field, SQLModel
 
 class BaseEntity(SQLModel):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
+    active: bool = Field(default=True, index=True)
     created_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC),
         sa_column_kwargs={"server_default": func.now()},

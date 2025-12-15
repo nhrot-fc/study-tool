@@ -19,7 +19,7 @@ import { LuArrowLeft, LuClock, LuTrophy, LuBrainCircuit } from "react-icons/lu";
 import { apiClient } from "../lib/api";
 import { type QuizRead } from "../lib/types";
 import { useStudyPlan } from "../hooks/use-study-plan";
-import { QuizGenerateModal } from "../components/quizzes/QuizGenerateModal";
+import { QuizGeneratePopover } from "../components/quizzes/QuizGeneratePopover";
 
 export default function PlanQuizzes() {
   const { id } = useParams<{ id: string }>();
@@ -46,7 +46,7 @@ export default function PlanQuizzes() {
   }
 
   return (
-    <Container maxW="container.md" py={12}>
+    <Container maxW="container.md">
       {/* Header Minimalista */}
       <VStack align="start" gap={6} mb={10}>
         <Button
@@ -64,7 +64,7 @@ export default function PlanQuizzes() {
             Quizzes
           </Heading>
           {id && plan && (
-            <QuizGenerateModal
+            <QuizGeneratePopover
               planId={id}
               studyPlan={plan}
               trigger={
@@ -208,7 +208,7 @@ function EmptyState({ id, plan }: { id?: string; plan?: any }) {
           </Text>
         </VStack>
         {id && plan && (
-          <QuizGenerateModal
+          <QuizGeneratePopover
             planId={id}
             studyPlan={plan}
             trigger={

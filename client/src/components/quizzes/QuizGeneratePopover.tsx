@@ -1,23 +1,23 @@
 import { useState } from "react";
-import { Button, VStack, Input, Textarea, Text, Box } from "@chakra-ui/react";
-import { Dialog } from "../ui/dialog";
+import { Button, VStack, Input, Textarea, Text, Box, Heading } from "@chakra-ui/react";
+import { Popover } from "../ui/popover";
 import { apiClient } from "../../lib/api";
 import { type StudyPlan } from "../../lib/types";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { LuBrainCircuit } from "react-icons/lu";
 
-interface QuizGenerateModalProps {
+interface QuizGeneratePopoverProps {
   planId: string;
   studyPlan: StudyPlan;
   trigger?: React.ReactNode;
 }
 
-export const QuizGenerateModal = ({
+export const QuizGeneratePopover = ({
   planId,
   studyPlan,
   trigger,
-}: QuizGenerateModalProps) => {
+}: QuizGeneratePopoverProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,25 +47,25 @@ export const QuizGenerateModal = ({
   };
 
   return (
-    <Dialog.Root open={isOpen} onOpenChange={(e) => setIsOpen(e.open)}>
-      <Dialog.Trigger asChild>
+    <Popover.Root open={isOpen} onOpenChange={(e) => setIsOpen(e.open)} positioning={{ placement: "bottom-end" }}>
+      <Popover.Trigger asChild>
         {trigger || (
           <Button variant="outline">
             <LuBrainCircuit /> Take Quiz
           </Button>
         )}
-      </Dialog.Trigger>
-      <Dialog.Content>
-        <Dialog.Header>
-          <Dialog.Title>Generate Quiz</Dialog.Title>
-        </Dialog.Header>
-        <Dialog.Body>
+      </Popover.Trigger>
+      <Popover.Content width="320px">
+        <Popover.Arrow />
+        <Popover.Body>
           <VStack gap={4} align="stretch">
+            <Heading size="sm">Generate Quiz</Heading>
             <Box>
-              <Text mb={1} fontWeight="medium">
+              <Text mb={1} fontSize="sm" fontWeight="medium">
                 Number of Questions
               </Text>
               <Input
+                size="sm"
                 type="number"
                 value={numQuestions}
                 onChange={(e) => setNumQuestions(parseInt(e.target.value))}
@@ -74,10 +74,11 @@ export const QuizGenerateModal = ({
               />
             </Box>
             <Box>
-              <Text mb={1} fontWeight="medium">
+              <Text mb={1} fontSize="sm" fontWeight="medium">
                 Difficulty (1-10)
               </Text>
               <Input
+                size="sm"
                 type="number"
                 value={difficulty}
                 onChange={(e) => setDifficulty(parseInt(e.target.value))}
@@ -86,31 +87,28 @@ export const QuizGenerateModal = ({
               />
             </Box>
             <Box>
-              <Text mb={1} fontWeight="medium">
+              <Text mb={1} fontSize="sm" fontWeight="medium">
                 Focus / Description (Optional)
               </Text>
               <Textarea
+                size="sm"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g. Focus on Chapter 1"
+                rows={3}
               />
             </Box>
+            <Button
+              size="sm"
+              colorPalette="blue"
+              onClick={handleGenerate}
+              loading={loading}
+            >
+              Generate & Start
+            </Button>
           </VStack>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Dialog.ActionTrigger asChild>
-            <Button variant="outline">Cancel</Button>
-          </Dialog.ActionTrigger>
-          <Button
-            colorPalette="blue"
-            onClick={handleGenerate}
-            loading={loading}
-          >
-            Generate & Start
-          </Button>
-        </Dialog.Footer>
-        <Dialog.CloseTrigger />
-      </Dialog.Content>
-    </Dialog.Root>
+        </Popover.Body>
+      </Popover.Content>
+    </Popover.Root>
   );
 };

@@ -154,7 +154,7 @@ export default function QuizTake() {
     };
 
     return (
-      <Container maxW="container.md" py={8}>
+      <Container maxW="container.md">
         <Button
           variant="ghost"
           mb={6}

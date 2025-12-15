@@ -16,7 +16,7 @@ async def get_user(
     service: Annotated[UserService, Depends(get_user_service)],
 ) -> UserRead:
     user = await service.get_by_id(user_id)
-    if not user:
+    if not user or not user.active:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",

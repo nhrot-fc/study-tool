@@ -71,3 +71,8 @@ class BaseRepository[ModelType: BaseEntity]:
         statement = delete(self.model).where(col(self.model.id).in_(ids))
         await self.session.execute(statement)
         await self.session.commit()
+
+    async def soft_delete(self, db_obj: ModelType) -> None:
+        db_obj.active = False
+        self.session.add(db_obj)
+        await self.session.commit()

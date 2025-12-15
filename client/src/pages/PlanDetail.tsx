@@ -19,7 +19,7 @@ import { StudyPlanTree } from "../components/plans/StudyPlanTree";
 import { ResourceItem } from "../components/resources/ResourceItem";
 import { LuArrowLeft, LuCopy, LuBrainCircuit, LuList } from "react-icons/lu";
 import { MdEdit } from "react-icons/md";
-import { QuizGenerateModal } from "../components/quizzes/QuizGenerateModal";
+import { QuizGeneratePopover } from "../components/quizzes/QuizGeneratePopover";
 
 export default function PlanDetail() {
   const { id } = useParams<{ id: string }>();
@@ -132,7 +132,7 @@ export default function PlanDetail() {
                     <LuList /> Quizzes
                   </Button>
 
-                  <QuizGenerateModal
+                  <QuizGeneratePopover
                     planId={id || ""}
                     studyPlan={plan}
                     trigger={

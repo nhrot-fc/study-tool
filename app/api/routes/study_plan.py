@@ -159,3 +159,23 @@ async def list_user_study_plans(
         )
     items, _ = await service.get_user_study_plans(user.id, skip, limit)
     return [StudyPlanRead.model_validate(item) for item in items]
+
+
+@router.delete("/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_study_plan(
+    plan_id: UUID,
+    current_user: CurrentUser,
+    service: Annotated[StudyPlanService, Depends(get_study_plan_service)],
+) -> None:
+    plan = await service.get_study_plan_detailed(plan_id)
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Study plan not found"
+        )
+    if plan.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot delete study plan for another user",
+        )
+
+    await service.delete_study_plan(plan_id)
