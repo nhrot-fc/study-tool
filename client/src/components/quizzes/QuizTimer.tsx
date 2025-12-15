@@ -8,18 +8,23 @@ interface QuizTimerProps {
   onExpire?: () => void;
 }
 
-export function QuizTimer({ startedAt, durationMinutes, onExpire }: QuizTimerProps) {
+export function QuizTimer({
+  startedAt,
+  durationMinutes,
+  onExpire,
+}: QuizTimerProps) {
   const [timeLeft, setTimeLeft] = useState<number>(durationMinutes * 60 * 1000);
   const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
     if (!startedAt) return;
-
+    // Started At is in UTC-0
     const endTime = new Date(startedAt).getTime() + durationMinutes * 60 * 1000;
 
     const interval = setInterval(() => {
       const now = Date.now();
-      const diff = endTime - now;
+      const utc_zero_now = now + new Date().getTimezoneOffset() * 60000;
+      const diff = endTime - utc_zero_now;
 
       if (diff <= 0) {
         setTimeLeft(0);
@@ -51,20 +56,17 @@ export function QuizTimer({ startedAt, durationMinutes, onExpire }: QuizTimerPro
   if (!startedAt) return null;
 
   return (
-    <Badge 
-      variant="surface" 
-      colorPalette={colorPalette} 
-      px={3} 
-      py={1} 
+    <Badge
+      variant="surface"
+      colorPalette={colorPalette}
+      px={3}
+      py={1}
       borderRadius="full"
       fontSize="md"
     >
       <HStack gap={2}>
         <Icon as={icon} />
-        <Text 
-          fontWeight="semibold" 
-          fontVariantNumeric="tabular-nums" 
-        >
+        <Text fontWeight="semibold" fontVariantNumeric="tabular-nums">
           {formattedTime}
         </Text>
       </HStack>

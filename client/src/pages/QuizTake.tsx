@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -75,51 +75,53 @@ export default function QuizTake() {
     });
   };
 
-  const handleSubmit = async (force: boolean | React.MouseEvent = false) => {
-    if (!id || !quiz) return;
+  const handleSubmit = useCallback(
+    async (force: boolean | React.MouseEvent = false) => {
+      if (!id || !quiz) return;
 
-    const isForce = force === true;
+      const isForce = force === true;
 
-    const submissionAnswers: QuestionUserSelectedOptions[] = [];
-    Object.entries(answers).forEach(([questionId, selectedOptionIds]) => {
-      selectedOptionIds.forEach((optionId) => {
-        submissionAnswers.push({
-          question_id: questionId,
-          selected_option_id: optionId,
+      const submissionAnswers: QuestionUserSelectedOptions[] = [];
+      Object.entries(answers).forEach(([questionId, selectedOptionIds]) => {
+        selectedOptionIds.forEach((optionId) => {
+          submissionAnswers.push({
+            question_id: questionId,
+            selected_option_id: optionId,
+          });
         });
       });
-    });
 
-    const answeredQuestionsCount = Object.values(answers).filter(
-      (options) => options && options.length > 0,
-    ).length;
+      const answeredQuestionsCount = Object.values(answers).filter(
+        (options) => options && options.length > 0,
+      ).length;
 
-    if (!isForce && answeredQuestionsCount < quiz.questions.length) {
-      toast.error("Please answer all questions before submitting");
-      return;
-    }
+      if (!isForce && answeredQuestionsCount < quiz.questions.length) {
+        toast.error("Please answer all questions before submitting");
+        return;
+      }
 
-    setSubmitting(true);
-    try {
-      const resultData = await apiClient.submitQuiz(id, {
-        answers: submissionAnswers,
-      });
-      setResult(resultData);
-      toast.success("Quiz submitted!");
-      window.scrollTo(0, 0);
-    } catch (err) {
-      console.error("Failed to submit quiz", err);
-      toast.error("Failed to submit quiz");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+      setSubmitting(true);
+      try {
+        const resultData = await apiClient.submitQuiz(id, {
+          answers: submissionAnswers,
+        });
+        setResult(resultData);
+        toast.success("Quiz submitted!");
+        window.scrollTo(0, 0);
+      } catch (err) {
+        console.error("Failed to submit quiz", err);
+        toast.error("Failed to submit quiz");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [id, quiz, answers],
+  );
 
-  const handleTimerExpire = () => {
+  const handleTimerExpire = useCallback(() => {
     toast.error("Time expired! Submitting quiz...");
     handleSubmit(true);
-  };
-
+  }, [handleSubmit]);
 
   if (loading) {
     return (
@@ -179,9 +181,12 @@ export default function QuizTake() {
               index={index}
               readOnly
               isCorrectOption={(optId) =>
-                question.options.find((o) => o.id === optId)?.is_correct ?? false
+                question.options.find((o) => o.id === optId)?.is_correct ??
+                false
               }
-              isUserSelected={(optId) => isSelected(question.id, optId) ?? false}
+              isUserSelected={(optId) =>
+                isSelected(question.id, optId) ?? false
+              }
             />
           ))}
         </VStack>

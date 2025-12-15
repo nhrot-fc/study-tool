@@ -219,6 +219,7 @@ export interface QuizRead extends QuizBase {
   started_at?: string | null;
   completed_at?: string | null;
   score?: number | null;
+  is_expired?: boolean;
 }
 
 export interface QuizUserAnswerRead {

@@ -8,6 +8,7 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { type QuestionRead, type QuestionPublic } from "../../lib/types";
+import { Markdown } from "../ui/Markdown";
 
 interface QuestionCardProps {
   question: QuestionRead | QuestionPublic;
@@ -39,7 +40,7 @@ export function QuestionCard({
   return (
     <Card.Root>
       <Card.Body>
-        <VStack align="start" gap={4}>
+        <VStack align="start" gap={4} width="full">
           <Text fontWeight="bold" fontSize="lg" color="gray.400">
             {index + 1}. {question.title}
             {isMultiple && (
@@ -48,7 +49,9 @@ export function QuestionCard({
               </Text>
             )}
           </Text>
-          <Text>{question.description}</Text>
+          <Box width="full">
+            <Markdown>{question.description}</Markdown>
+          </Box>
 
           <VStack align="start" gap={3} width="full">
             {readOnly ? (
@@ -82,7 +85,7 @@ export function QuestionCard({
                     bg={bg}
                     _dark={{ bg: darkBg }}
                   >
-                    <Text>{option.text}</Text>
+                    <Markdown>{option.text}</Markdown>
                   </Box>
                 );
               })
@@ -93,12 +96,7 @@ export function QuestionCard({
                   key={option.id}
                   checked={selectedOptions.includes(option.id)}
                   onCheckedChange={(e) =>
-                    onAnswerChange?.(
-                      question.id,
-                      option.id,
-                      !!e.checked,
-                      true,
-                    )
+                    onAnswerChange?.(question.id, option.id, !!e.checked, true)
                   }
                   width="full"
                   p={2}
@@ -112,9 +110,11 @@ export function QuestionCard({
                   }}
                 >
                   <Checkbox.HiddenInput />
-                  <HStack width="full" gap={2}>
-                    <Checkbox.Control />
-                    <Text flex="1">{option.text}</Text>
+                  <HStack width="full" gap={2} align="start">
+                    <Checkbox.Control mt={1} />
+                    <Box flex="1">
+                      <Markdown>{option.text}</Markdown>
+                    </Box>
                   </HStack>
                 </Checkbox.Root>
               ))
@@ -146,8 +146,10 @@ export function QuestionCard({
                       }}
                     >
                       <RadioGroup.ItemHiddenInput />
-                      <RadioGroup.ItemControl />
-                      <RadioGroup.ItemText>{option.text}</RadioGroup.ItemText>
+                      <RadioGroup.ItemControl mt={1} alignSelf="start" />
+                      <RadioGroup.ItemText flex="1">
+                        <Markdown>{option.text}</Markdown>
+                      </RadioGroup.ItemText>
                     </RadioGroup.Item>
                   ))}
                 </VStack>

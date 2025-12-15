@@ -10,12 +10,15 @@ import {
   Spinner,
   Center,
   Card,
+  Icon,
   Badge,
+  Box,
+  Separator,
 } from "@chakra-ui/react";
+import { LuArrowLeft, LuClock, LuTrophy, LuBrainCircuit } from "react-icons/lu";
 import { apiClient } from "../lib/api";
 import { type QuizRead } from "../lib/types";
 import { useStudyPlan } from "../hooks/use-study-plan";
-import { LuArrowLeft, LuPlay, LuCircleCheck } from "react-icons/lu";
 import { QuizGenerateModal } from "../components/quizzes/QuizGenerateModal";
 
 export default function PlanQuizzes() {
@@ -37,89 +40,185 @@ export default function PlanQuizzes() {
   if (loading) {
     return (
       <Center h="50vh">
-        <Spinner size="xl" />
+        <Spinner color="blue.500" size="xl" />
       </Center>
     );
   }
 
   return (
-    <Container maxW="container.xl" py={8}>
-      <Button variant="ghost" mb={6} onClick={() => navigate(`/plans/${id}`)}>
-        <HStack gap={2}>
-          <LuArrowLeft />
-          <Text>Back to Plan</Text>
-        </HStack>
-      </Button>
+    <Container maxW="container.md" py={12}>
+      {/* Header Minimalista */}
+      <VStack align="start" gap={6} mb={10}>
+        <Button
+          variant="plain"
+          px={0}
+          color="fg.muted"
+          _hover={{ color: "fg.subtle" }}
+          onClick={() => navigate(`/plans/${id}`)}
+        >
+          <LuArrowLeft /> Back to Plan
+        </Button>
 
-      <HStack justify="space-between" mb={8}>
-        <Heading size="xl">Quizzes</Heading>
-        {id && plan && <QuizGenerateModal planId={id} studyPlan={plan} />}
-      </HStack>
-
-      {quizzes.length === 0 ? (
-        <Center py={12} flexDirection="column" gap={4}>
-          <Text color="gray.500" fontSize="lg">
-            No quizzes generated yet.
-          </Text>
+        <HStack justify="space-between" width="full" wrap="wrap" gap={4}>
+          <Heading size="3xl" fontWeight="tight" letterSpacing="tight">
+            Quizzes
+          </Heading>
           {id && plan && (
             <QuizGenerateModal
               planId={id}
               studyPlan={plan}
               trigger={
-                <Button colorPalette="blue">Generate your first quiz</Button>
+                <Button size="sm" variant="outline" colorPalette="blue">
+                  New Quiz
+                </Button>
               }
             />
           )}
-        </Center>
+        </HStack>
+      </VStack>
+
+      {/* Lista de Quizzes */}
+      {quizzes.length === 0 ? (
+        <EmptyState id={id} plan={plan} />
       ) : (
-        <VStack align="stretch" gap={4}>
+        <VStack align="stretch" gap={3}>
           {quizzes.map((quiz) => (
-            <Card.Root key={quiz.id} variant="subtle">
-              <Card.Body>
-                <HStack justify="space-between">
-                  <VStack align="start" gap={1}>
-                    <Heading size="md">{quiz.title}</Heading>
-                    <HStack gap={2}>
-                      <Badge colorPalette="purple">
-                        Difficulty: {quiz.difficulty}
-                      </Badge>
-                      <Badge variant="outline">
-                        {quiz.duration_minutes} min
-                      </Badge>
-                      {quiz.completed_at ? (
-                        <Badge colorPalette="green">Score: {quiz.score}%</Badge>
-                      ) : quiz.started_at ? (
-                        <Badge colorPalette="blue">In Progress</Badge>
-                      ) : (
-                        <Badge colorPalette="gray">Not Started</Badge>
-                      )}
-                    </HStack>
-                  </VStack>
-                  <Button
-                    variant={quiz.completed_at ? "outline" : "solid"}
-                    colorPalette={quiz.completed_at ? "gray" : "blue"}
-                    onClick={() => navigate(`/quizzes/${quiz.id}`)}
-                  >
-                    {quiz.completed_at ? (
-                      <>
-                        <LuCircleCheck /> Review
-                      </>
-                    ) : quiz.started_at ? (
-                      <>
-                        <LuPlay /> Continue
-                      </>
-                    ) : (
-                      <>
-                        <LuPlay /> Start
-                      </>
-                    )}
-                  </Button>
-                </HStack>
-              </Card.Body>
-            </Card.Root>
+            <QuizCardItem key={quiz.id} quiz={quiz} onNavigate={navigate} />
           ))}
         </VStack>
       )}
     </Container>
+  );
+}
+
+// Sub-componente para limpiar el render principal
+function QuizCardItem({
+  quiz,
+  onNavigate,
+}: {
+  quiz: QuizRead;
+  onNavigate: any;
+}) {
+  const isCompleted = !!quiz.completed_at;
+  const isExpired = !!quiz.is_expired;
+  const isInProgress = !!quiz.started_at && !isCompleted && !isExpired;
+
+  // Color semántico basado en estado
+  const statusColor = isCompleted
+    ? (quiz.score ?? 0) >= 75
+      ? "green"
+      : (quiz.score ?? 0) >= 50
+        ? "orange"
+        : "red"
+    : isExpired
+      ? "red"
+      : isInProgress
+        ? "blue"
+        : "gray";
+
+  return (
+    <Card.Root
+      variant="outline"
+      size="sm"
+      transition="all 0.2s"
+      _hover={{ borderColor: "border.emphasized", shadow: "xs" }}
+    >
+      <Card.Body py={4}>
+        <HStack justify="space-between" gap={4} wrap="wrap">
+          {/* Info Principal */}
+          <VStack align="start" gap={2} flex={1}>
+            <HStack>
+              <Heading size="md" fontWeight="semibold">
+                {quiz.title}
+              </Heading>
+              {isInProgress && (
+                <Badge size="sm" colorPalette="blue" variant="surface">
+                  In Progress
+                </Badge>
+              )}
+              {isExpired && !isCompleted && (
+                <Badge size="sm" colorPalette="red" variant="surface">
+                  Expired
+                </Badge>
+              )}
+            </HStack>
+
+            {/* Metadatos Limpios: Icono + Texto gris */}
+            <HStack fontSize="xs" color="fg.muted" gap={4}>
+              <HStack gap={1}>
+                <Icon as={LuClock} />
+                <Text>{quiz.duration_minutes} min</Text>
+              </HStack>
+              <Separator orientation="vertical" height="12px" />
+              <HStack gap={1}>
+                <Icon as={LuBrainCircuit} />
+                <Text>Difficulty {quiz.difficulty}</Text>
+              </HStack>
+            </HStack>
+          </VStack>
+
+          {/* Acción / Resultado */}
+          <HStack gap={4}>
+            {isCompleted && quiz.score !== undefined ? (
+              <HStack
+                gap={1}
+                color={statusColor + ".500"}
+                pr={2}
+              >
+                <LuTrophy />
+                <Text fontWeight="bold" fontSize="lg">
+                  {Math.round(quiz.score ?? 0)}%
+                </Text>
+              </HStack>
+            ) : null}
+
+            <Button
+              size="sm"
+              variant="outline"
+              colorPalette={statusColor}
+              onClick={() => onNavigate(`/quizzes/${quiz.id}`)}
+            >
+              {isCompleted
+                ? "Review"
+                : isExpired
+                  ? "Expired"
+                  : isInProgress
+                    ? "Continue"
+                    : "Start Quiz"}
+            </Button>
+          </HStack>
+        </HStack>
+      </Card.Body>
+    </Card.Root>
+  );
+}
+
+// Componente de estado vacío
+function EmptyState({ id, plan }: { id?: string; plan?: any }) {
+  return (
+    <Card.Root variant="outline" borderStyle="dashed" py={10}>
+      <Center flexDirection="column" gap={4}>
+        <Box p={4} bg="gray.50" borderRadius="full" color="gray.400">
+          <LuBrainCircuit size={32} />
+        </Box>
+        <VStack gap={1}>
+          <Text fontWeight="medium">No quizzes yet</Text>
+          <Text color="fg.muted" fontSize="sm">
+            Create a quiz to test your knowledge.
+          </Text>
+        </VStack>
+        {id && plan && (
+          <QuizGenerateModal
+            planId={id}
+            studyPlan={plan}
+            trigger={
+              <Button variant="surface" mt={2}>
+                Generate First Quiz
+              </Button>
+            }
+          />
+        )}
+      </Center>
+    </Card.Root>
   );
 }

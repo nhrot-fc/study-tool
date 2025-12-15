@@ -86,6 +86,8 @@ export default function PlanCreate() {
               <Popover.Trigger asChild>
                 <Button
                   variant="outline"
+                  color="purple.500"
+                  borderColor="purple.500"
                   size="sm"
                   flex={{ base: 1, md: "initial" }}
                 >

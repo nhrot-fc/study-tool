@@ -34,6 +34,19 @@ class Quiz(BaseEntity, table=True):
         back_populates="quiz", sa_relationship_kwargs={"cascade": "all, delete"}
     )
 
+    @property
+    def is_expired(self) -> bool:
+        if not self.started_at or self.completed_at:
+            return False
+
+        started_at = self.started_at
+        if started_at.tzinfo is None:
+            started_at = started_at.replace(tzinfo=UTC)
+
+        now = datetime.now(UTC)
+        elapsed = (now - started_at).total_seconds()
+        return elapsed > (self.duration_minutes * 60)
+
 
 class Question(BaseEntity, table=True):
     __tablename__ = "question"  # type: ignore

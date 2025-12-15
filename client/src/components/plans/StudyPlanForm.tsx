@@ -386,6 +386,7 @@ export const StudyPlanForm = ({
               {headerActions}
               <Button
                 size="sm"
+                variant="outline"
                 colorPalette="blue"
                 onClick={handleSubmit}
                 loading={isLoading}

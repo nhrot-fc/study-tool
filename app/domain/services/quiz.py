@@ -124,8 +124,9 @@ class QuizService:
             else quiz.started_at
         )
         time_elapsed = datetime.now(UTC) - started_at
-        if time_elapsed.total_seconds() > quiz.duration_minutes * 60:
-            raise InvalidOperationException("Quiz time has expired")
+        # Allow submission even if time expired to handle auto-submit from client
+        # if time_elapsed.total_seconds() > quiz.duration_minutes * 60:
+        #     raise InvalidOperationException("Quiz time has expired")
 
         user_answers_map = self._map_user_answers(answers)
 

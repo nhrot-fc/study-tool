@@ -72,6 +72,7 @@ class QuizRead(QuizBase):
     started_at: datetime | None
     completed_at: datetime | None
     score: float | None
+    is_expired: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
