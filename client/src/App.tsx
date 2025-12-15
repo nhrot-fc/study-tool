@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./pages/Layout";
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -37,6 +37,8 @@ const App = () => {
           <Route path="plans/:id/quizzes" element={<PlanQuizzes />} />
           <Route path="quizzes/:id" element={<QuizTake />} />
           <Route path="users/:userId" element={<UserPlans />} />
+          <Route path="home" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
