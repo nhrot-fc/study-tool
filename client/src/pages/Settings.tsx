@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 
 const Settings = () => {
   return (
-    <Container maxW="3xl" py={10}>
+    <Container maxW="3xl">
       <Heading size="2xl" mb={8}>
         Settings
       </Heading>

@@ -3,7 +3,6 @@ import {
   Box,
   Flex,
   Heading,
-  Spacer,
   Button,
   Input,
   HStack,
@@ -11,44 +10,43 @@ import {
   Text,
   Spinner,
   IconButton,
+  Container,
+  Separator,
+  Avatar,
+  Icon,
 } from "@chakra-ui/react";
 import { ColorModeButton } from "./ui/color-mode";
 import { useAuth } from "../hooks/use-auth";
-import { LuSearch, LuUser, LuMenu, LuX } from "react-icons/lu";
+import {
+  LuSearch,
+  LuMenu,
+  LuX,
+  LuBrainCircuit,
+  LuLogOut,
+  LuSettings,
+  LuBookOpen,
+  LuUser,
+} from "react-icons/lu";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { LoginPopover } from "./LoginPopover";
 import { RegisterPopover } from "./RegisterPopover";
+import { Popover } from "./ui/popover";
 import { apiClient } from "../lib/api";
 import { type User } from "../lib/types";
-import { toast } from "sonner";
 
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  // Search State
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const handleDeleteAccount = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to delete your account? This action cannot be undone.",
-      )
-    )
-      return;
-    try {
-      await apiClient.deleteAccount();
-      logout();
-      toast.success("Account deleted");
-      navigate("/");
-    } catch (err) {
-      console.error("Failed to delete account", err);
-      toast.error("Failed to delete account");
-    }
-  };
+  // Mobile Menu State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -59,20 +57,17 @@ const Header = () => {
         setShowResults(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Debounced Search
   useEffect(() => {
     const search = async () => {
       if (query.length < 3) {
         setResults([]);
         return;
       }
-
       setLoading(true);
       try {
         const users = await apiClient.searchUsers(query);
@@ -83,7 +78,6 @@ const Header = () => {
         setLoading(false);
       }
     };
-
     const timeoutId = setTimeout(search, 300);
     return () => clearTimeout(timeoutId);
   }, [query]);
@@ -92,192 +86,64 @@ const Header = () => {
     navigate(`/users/${userId}`);
     setShowResults(false);
     setQuery("");
+    setIsMobileMenuOpen(false);
   };
 
   return (
     <Box
       as="header"
-      bg={{ base: "white", _dark: "gray.900" }}
-      color={{ base: "gray.900", _dark: "white" }}
-      py={3}
-      px={6}
+      position="sticky"
+      top={0}
+      zIndex="sticky"
+      bg="bg/80"
+      backdropFilter="blur(12px)"
       borderBottomWidth="1px"
-      borderColor={{ base: "gray.200", _dark: "gray.800" }}
+      borderColor="border.subtle"
     >
-      <Flex alignItems="center" gap={4}>
-        <RouterLink to="/">
-          <Heading size="md" fontWeight="bold">
-            Study Tool
-          </Heading>
-        </RouterLink>
-
-        <Box
-          display={{ base: "none", md: "block" }}
-          w="300px"
-          position="relative"
-          ref={searchRef}
-        >
-          <HStack
-            bg={{ base: "gray.100", _dark: "gray.800" }}
-            borderRadius="md"
-            px={3}
-            py={1}
-            border="1px solid"
-            borderColor={{ base: "gray.200", _dark: "gray.700" }}
-          >
-            <LuSearch color="gray" />
-            <Input
-              placeholder="Search users..."
-              variant="subtle"
-              color="inherit"
-              h="24px"
-              fontSize="sm"
-              css={{ "--input-placeholder-color": "colors.gray.500" }}
-              border="none"
-              _focus={{ outline: "none" }}
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setShowResults(true);
-              }}
-              onFocus={() => setShowResults(true)}
-            />
-            {loading && <Spinner size="xs" color="gray.500" />}
-          </HStack>
-
-          {showResults && query.length >= 3 && (
-            <Box
-              position="absolute"
-              top="100%"
-              left={0}
-              right={0}
-              mt={2}
-              bg={{ base: "white", _dark: "gray.800" }}
-              borderRadius="md"
-              boxShadow="lg"
-              borderWidth="1px"
-              borderColor={{ base: "gray.200", _dark: "gray.700" }}
-              zIndex={1000}
-              maxH="300px"
-              overflowY="auto"
-            >
-              {results.length === 0 && !loading ? (
-                <Box p={3} textAlign="center">
-                  <Text fontSize="sm" color="gray.500">
-                    No users found
-                  </Text>
-                </Box>
-              ) : (
-                <VStack align="stretch" gap={0}>
-                  {results.map((result) => (
-                    <Button
-                      key={result.id}
-                      variant="ghost"
-                      justifyContent="start"
-                      h="auto"
-                      py={2}
-                      px={3}
-                      borderRadius={0}
-                      onClick={() => handleUserClick(result.id)}
-                    >
-                      <HStack>
-                        <Box
-                          p={1}
-                          bg="gray.100"
-                          _dark={{ bg: "gray.700" }}
-                          borderRadius="full"
-                        >
-                          <LuUser />
-                        </Box>
-                        <VStack align="start" gap={0}>
-                          <Text fontSize="sm" fontWeight="medium">
-                            {result.username}
-                          </Text>
-                          <Text fontSize="xs" color="gray.500">
-                            {result.email}
-                          </Text>
-                        </VStack>
-                      </HStack>
-                    </Button>
-                  ))}
-                </VStack>
-              )}
-            </Box>
-          )}
-        </Box>
-
-        <HStack gap={1} ml={4} display={{ base: "none", md: "flex" }}>
-          <RouterLink to="/about">
-            <Button variant="ghost" size="sm" as="span">
-              About
-            </Button>
+      <Container maxW="container.xl">
+        <Flex alignItems="center" py={3} gap={4}>
+          {/* 1. BRANDING */}
+          <RouterLink to="/">
+            <HStack gap={2} _hover={{ opacity: 0.8 }} transition="opacity 0.2s">
+              <Icon as={LuBrainCircuit} size="lg" color="blue.500" />
+              <Heading size="md" fontWeight="bold" letterSpacing="tight">
+                Study Tool
+              </Heading>
+            </HStack>
           </RouterLink>
-          {user && (
-            <RouterLink to="/plans/new">
-              <Button variant="ghost" size="sm" as="span">
-                Create
-              </Button>
-            </RouterLink>
-          )}
-        </HStack>
 
-        <Spacer />
-
-        <HStack gap={3}>
-          {!user ? (
-            <>
-              <LoginPopover />
-              <RegisterPopover />
-            </>
-          ) : (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                colorPalette="red"
-                onClick={handleDeleteAccount}
-              >
-                Delete Account
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => logout()}>
-                Sign out
-              </Button>
-            </>
-          )}
-          <ColorModeButton />
-          <IconButton
-            display={{ base: "flex", md: "none" }}
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            variant="ghost"
-            size="sm"
-            aria-label="Open menu"
+          {/* 2. SEARCH BAR (Desktop) */}
+          <Box
+            display={{ base: "none", md: "block" }}
+            flex="1"
+            maxW="400px"
+            mx={8}
+            position="relative"
+            ref={searchRef}
           >
-            {isMobileMenuOpen ? <LuX /> : <LuMenu />}
-          </IconButton>
-        </HStack>
-      </Flex>
-
-      {isMobileMenuOpen && (
-        <Box pb={4} display={{ md: "none" }} mt={4}>
-          <Box position="relative" mb={4}>
             <HStack
-              bg={{ base: "gray.100", _dark: "gray.800" }}
-              borderRadius="md"
-              px={3}
-              py={2}
-              border="1px solid"
-              borderColor={{ base: "gray.200", _dark: "gray.700" }}
+              bg="bg.muted"
+              borderRadius="full"
+              px={4}
+              py={1.5}
+              borderWidth="1px"
+              borderColor="transparent"
+              transition="all 0.2s"
+              _focusWithin={{
+                bg: "bg.panel",
+                borderColor: "blue.500",
+                boxShadow: "0 0 0 1px var(--chakra-colors-blue-500)",
+              }}
             >
-              <LuSearch color="gray" />
+              <Icon as={LuSearch} color="fg.muted" />
               <Input
-                placeholder="Search users..."
+                placeholder="Find users..."
                 variant="subtle"
-                color="inherit"
-                h="24px"
+                bg="transparent"
+                _focus={{ bg: "transparent" }}
+                h="auto"
+                p={0}
                 fontSize="sm"
-                css={{ "--input-placeholder-color": "colors.gray.500" }}
-                border="none"
-                _focus={{ outline: "none" }}
                 value={query}
                 onChange={(e) => {
                   setQuery(e.target.value);
@@ -285,57 +151,62 @@ const Header = () => {
                 }}
                 onFocus={() => setShowResults(true)}
               />
-              {loading && <Spinner size="xs" color="gray.500" />}
+              {loading && <Spinner size="xs" color="fg.muted" />}
             </HStack>
+
+            {/* Search Results Dropdown */}
             {showResults && query.length >= 3 && (
               <Box
                 position="absolute"
-                top="100%"
+                top="calc(100% + 8px)"
                 left={0}
                 right={0}
-                mt={2}
-                bg={{ base: "white", _dark: "gray.800" }}
-                borderRadius="md"
-                boxShadow="lg"
+                bg="bg.panel"
+                borderRadius="lg"
+                boxShadow="xl"
                 borderWidth="1px"
-                borderColor={{ base: "gray.200", _dark: "gray.700" }}
-                zIndex={1000}
+                borderColor="border.subtle"
                 maxH="300px"
                 overflowY="auto"
+                zIndex="popover"
               >
                 {results.length === 0 && !loading ? (
-                  <Box p={3} textAlign="center">
-                    <Text fontSize="sm" color="gray.500">
-                      No users found
-                    </Text>
+                  <Box p={4} textAlign="center" color="fg.muted">
+                    <Text fontSize="sm">No users found</Text>
                   </Box>
                 ) : (
                   <VStack align="stretch" gap={0}>
+                    <Box px={3} py={2} bg="bg.muted/50">
+                      <Text
+                        fontSize="xs"
+                        fontWeight="bold"
+                        color="fg.muted"
+                        textTransform="uppercase"
+                      >
+                        Users
+                      </Text>
+                    </Box>
                     {results.map((result) => (
                       <Button
                         key={result.id}
                         variant="ghost"
                         justifyContent="start"
                         h="auto"
-                        py={2}
-                        px={3}
+                        py={3}
+                        px={4}
                         borderRadius={0}
                         onClick={() => handleUserClick(result.id)}
+                        _hover={{ bg: "bg.muted" }}
                       >
-                        <HStack>
-                          <Box
-                            p={1}
-                            bg="gray.100"
-                            _dark={{ bg: "gray.700" }}
-                            borderRadius="full"
-                          >
-                            <LuUser />
-                          </Box>
-                          <VStack align="start" gap={0}>
+                        <HStack gap={3}>
+                          <Avatar.Root size="xs">
+                            <Avatar.Fallback name={result.username} />
+                          </Avatar.Root>
+                          <VStack align="start" gap={0} lineHeight="1.2">
                             <Text fontSize="sm" fontWeight="medium">
                               {result.username}
                             </Text>
-                            <Text fontSize="xs" color="gray.500">
+                            <Text fontSize="xs" color="fg.muted">
                               {result.email}
                             </Text>
                           </VStack>
@@ -348,27 +219,220 @@ const Header = () => {
             )}
           </Box>
 
-          <VStack align="stretch" gap={2}>
-            <RouterLink to="/about" onClick={() => setIsMobileMenuOpen(false)}>
-              <Button variant="ghost" justifyContent="start" w="full">
+          {/* 3. DESKTOP NAVIGATION & ACTIONS */}
+          <HStack gap={1} display={{ base: "none", md: "flex" }} ml="auto">
+            <RouterLink to="/about">
+              <Button variant="ghost" size="sm" color="fg.muted">
                 About
               </Button>
             </RouterLink>
-            {user && (
-              <RouterLink
-                to="/plans/new"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <Button variant="ghost" justifyContent="start" w="full">
-                  Create Plan
-                </Button>
-              </RouterLink>
+
+            <ColorModeButton />
+
+            {!user ? (
+              <HStack gap={2} ml={2}>
+                <LoginPopover />
+                <RegisterPopover />
+              </HStack>
+            ) : (
+              <UserMenu user={user} logout={logout} />
             )}
-          </VStack>
-        </Box>
-      )}
+          </HStack>
+
+          {/* 4. MOBILE TOGGLE */}
+          <IconButton
+            display={{ base: "flex", md: "none" }}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            variant="ghost"
+            size="sm"
+            ml="auto"
+          >
+            {isMobileMenuOpen ? <LuX /> : <LuMenu />}
+          </IconButton>
+        </Flex>
+
+        {/* 5. MOBILE MENU */}
+        {isMobileMenuOpen && (
+          <Box pb={4} display={{ md: "none" }}>
+            <VStack align="stretch" gap={4}>
+              {/* Mobile Search */}
+              <Box>
+                <HStack bg="bg.muted" borderRadius="md" px={3} py={2}>
+                  <Icon as={LuSearch} color="fg.muted" />
+                  <Input
+                    placeholder="Search users..."
+                    variant="subtle"
+                    bg="transparent"
+                    _focus={{ bg: "transparent" }}
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                  {loading && <Spinner size="xs" color="fg.muted" />}
+                </HStack>
+
+                {query.length >= 3 && (
+                  <Box
+                    mt={2}
+                    bg="bg.panel"
+                    borderRadius="md"
+                    borderWidth="1px"
+                    borderColor="border.subtle"
+                    maxH="200px"
+                    overflowY="auto"
+                  >
+                    {results.length === 0 && !loading ? (
+                      <Box p={3} textAlign="center" color="fg.muted">
+                        <Text fontSize="sm">No users found</Text>
+                      </Box>
+                    ) : (
+                      <VStack align="stretch" gap={0}>
+                        {results.map((result) => (
+                          <Button
+                            key={result.id}
+                            variant="ghost"
+                            justifyContent="start"
+                            h="auto"
+                            py={2}
+                            px={3}
+                            borderRadius={0}
+                            onClick={() => handleUserClick(result.id)}
+                          >
+                            <HStack gap={2}>
+                              <Avatar.Root size="xs">
+                                <Avatar.Fallback name={result.username} />
+                              </Avatar.Root>
+                              <Text fontSize="sm" truncate>
+                                {result.username}
+                              </Text>
+                              <Text fontSize="xs" color="fg.muted" truncate>
+                                {result.email}
+                              </Text>
+                            </HStack>
+                          </Button>
+                        ))}
+                      </VStack>
+                    )}
+                  </Box>
+                )}
+              </Box>
+
+              <VStack align="stretch" gap={1}>
+                <RouterLink to="/">
+                  <Button variant="ghost" justifyContent="start" w="full">
+                    Home
+                  </Button>
+                </RouterLink>
+                <RouterLink to="/about">
+                  <Button variant="ghost" justifyContent="start" w="full">
+                    About
+                  </Button>
+                </RouterLink>
+                {user && (
+                  <RouterLink to="/plans/new">
+                    <Button
+                      variant="ghost"
+                      justifyContent="start"
+                      colorPalette="blue"
+                      w="full"
+                    >
+                      <LuBookOpen /> Create New Plan
+                    </Button>
+                  </RouterLink>
+                )}
+              </VStack>
+
+              <Separator />
+
+              <HStack justify="space-between">
+                <Text fontSize="sm" fontWeight="medium">
+                  Theme
+                </Text>
+                <ColorModeButton />
+              </HStack>
+
+              {!user ? (
+                <VStack align="stretch" gap={2}>
+                  <LoginPopover />
+                  <RegisterPopover />
+                </VStack>
+              ) : (
+                <Button
+                  variant="surface"
+                  colorPalette="red"
+                  onClick={() => logout()}
+                  justifyContent="start"
+                >
+                  <LuLogOut /> Sign Out
+                </Button>
+              )}
+            </VStack>
+          </Box>
+        )}
+      </Container>
     </Box>
   );
 };
+
+// --- SUBCOMPONENT: User Menu Dropdown ---
+function UserMenu({ user, logout }: { user: any; logout: () => void }) {
+  return (
+    <Popover.Root positioning={{ placement: "bottom-end" }}>
+      <Popover.Trigger asChild>
+        <Button
+          variant="ghost"
+          borderRadius="full"
+          p={0}
+          w="32px"
+          h="32px"
+          ml={2}
+        >
+          <Avatar.Root size="xs" colorPalette="blue">
+            <Avatar.Fallback name={user.username} />
+          </Avatar.Root>
+        </Button>
+      </Popover.Trigger>
+      <Popover.Content minW="200px" width="auto">
+        <Popover.Body p={2}>
+          <VStack align="stretch" gap={1}>
+            <Box px={2} py={1.5} mb={1}>
+              <Text fontSize="sm" fontWeight="semibold" truncate maxW="180px">
+                {user.username}
+              </Text>
+              <Text fontSize="xs" color="fg.muted" truncate maxW="180px">
+                {user.email}
+              </Text>
+            </Box>
+
+            <Separator />
+
+            <RouterLink to={`/users/${user.id}`}>
+              <Button variant="ghost" size="sm" justifyContent="start" w="full">
+                <LuUser /> My Profile
+              </Button>
+            </RouterLink>
+
+            <RouterLink to="/settings">
+              <Button variant="ghost" size="sm" justifyContent="start" w="full">
+                <LuSettings /> Settings
+              </Button>
+            </RouterLink>
+
+            <Separator />
+
+            <Button
+              variant="ghost"
+              size="sm"
+              colorPalette="red"
+              justifyContent="start"
+              onClick={logout}
+            >
+              <LuLogOut /> Sign out
+            </Button>
+          </VStack>
+        </Popover.Body>
+      </Popover.Content>
+    </Popover.Root>
+  );
+}
 
 export default Header;
