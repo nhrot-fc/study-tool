@@ -1,7 +1,10 @@
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import { Box, type BoxProps } from "@chakra-ui/react";
 import "highlight.js/styles/github-dark.css";
+import "katex/dist/katex.min.css";
 
 interface MarkdownProps extends BoxProps {
   children: string;
@@ -34,7 +37,10 @@ export function Markdown({ children, ...props }: MarkdownProps) {
         },
       }}
     >
-      <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
+      <ReactMarkdown
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeHighlight, rehypeKatex]}
+      >
         {children}
       </ReactMarkdown>
     </Box>

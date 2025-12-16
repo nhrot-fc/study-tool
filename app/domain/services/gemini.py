@@ -13,7 +13,7 @@ class GeminiService:
     def __init__(self):
         settings = get_settings()
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        self.model = "gemini-2.5-flash-lite"
+        self.model = "gemini-2.5-flash"
 
     def generate_json(self, prompt: str, schema: dict[str, Any]) -> str | None:
         """
