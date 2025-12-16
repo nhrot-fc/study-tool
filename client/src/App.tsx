@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./pages/Layout";
 import Home from "./pages/Home";
-import About from "./pages/About";
 import Settings from "./pages/Settings";
 import Landing from "./pages/Landing";
 import PlanCreate from "./pages/PlanCreate";
@@ -29,7 +28,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={user ? <Home /> : <Landing />} />
-          <Route path="about" element={<About />} />
+          <Route path="about" element={<Landing />} />
           <Route path="settings" element={<Settings />} />
           <Route path="plans/new" element={<PlanCreate />} />
           <Route path="plans/:id" element={<PlanDetail />} />

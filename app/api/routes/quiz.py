@@ -87,9 +87,7 @@ async def submit_quiz(
     current_user: CurrentUser,
     service: Annotated[QuizService, Depends(get_quiz_service)],
 ) -> QuizResult:
-    quiz = await service.submit_answers(
-        quiz_id, current_user.id, submission.answers
-    )
+    quiz = await service.submit_answers(quiz_id, current_user.id, submission.answers)
 
     total_questions = len(quiz.questions)
     correct_answers = (

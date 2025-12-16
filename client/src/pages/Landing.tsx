@@ -2,105 +2,200 @@ import {
   Box,
   Heading,
   Text,
+  Container,
+  VStack,
   SimpleGrid,
   Icon,
-  Stack,
-  Button,
-  Container,
   Card,
+  HStack,
+  Separator,
+  Button,
 } from "@chakra-ui/react";
 import type { IconType } from "react-icons";
-import { FaRocket, FaBook, FaChartLine, FaUsers } from "react-icons/fa";
+import {
+  LuBrainCircuit,
+  LuBookOpen,
+  LuGraduationCap,
+  LuZap,
+  LuGithub,
+  LuLayers,
+} from "react-icons/lu";
 
-const Feature = ({
-  title,
-  text,
-  icon,
-}: {
-  title: string;
-  text: string;
-  icon: IconType;
-}) => {
+export default function Landing() {
   return (
-    <Card.Root>
-      <Card.Body>
-        <Stack gap={4} align="center" textAlign="center">
-          <Box p={3} bg="teal.100" color="teal.600" borderRadius="full">
-            <Icon fontSize="2xl" as={icon} />
-          </Box>
-          <Heading size="md">{title}</Heading>
-          <Text color="gray.500">{text}</Text>
-        </Stack>
-      </Card.Body>
-    </Card.Root>
-  );
-};
-
-const Landing = () => {
-  return (
-    <Container maxW="6xl">
-      <Stack gap={12}>
-        {/* Hero Section */}
-        <Box textAlign="center" py={10} px={6}>
-          <Heading
-            as="h1"
-            size="4xl"
-            mt={10}
-            mb={6}
-            fontWeight="bold"
-            letterSpacing="tight"
-          >
-            Supercharge Your{" "}
-            <Text as="span" color="teal.500">
-              Learning
+    <Container maxW="container.lg" py={16}>
+      <VStack gap={16} align="stretch">
+        {/* HERO SECTION */}
+        <VStack textAlign="center" gap={6} maxW="2xl" mx="auto">
+          <BadgeWrapper>
+            <Icon as={LuBrainCircuit} mr={2} /> Powered by Google Gemini
+          </BadgeWrapper>
+          <Heading size="4xl" letterSpacing="tight" lineHeight="1.1">
+            Turn any topic into a <br />
+            <Text as="span" color="blue.500">
+              university-grade course.
             </Text>
           </Heading>
-          <Text color="gray.500" fontSize="xl" maxW="2xl" mx="auto" mb={10}>
-            The ultimate study tool designed to help you master any subject.
-            Organize your tasks, track your progress, and collaborate with
-            peers.
+          <Text fontSize="xl" color="gray.500" lineHeight="tall">
+            Stop scrolling through endless tutorials. Use AI LLMs to
+            structure chaos into clear, linear study plans inspired by curricula
+            from top institutions.
           </Text>
-          <Stack direction="row" gap={4} justify="center">
-            <Button size="xl" colorPalette="teal">
-              Get Started
-            </Button>
-            <Button size="xl" variant="outline">
-              Learn More
-            </Button>
-          </Stack>
-        </Box>
+        </VStack>
 
-        {/* Features Grid */}
+        {/* METHODOLOGY GRID */}
         <Box>
-          <Heading size="xl" mb={8} textAlign="center">
-            Why Choose Us?
+          <Heading size="lg" mb={8} textAlign="center">
+            How it Works
           </Heading>
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={8}>
-            <Feature
-              icon={FaRocket}
-              title="Fast Learning"
-              text="Optimized algorithms to help you learn faster and retain more."
+          <SimpleGrid columns={{ base: 1, md: 3 }} gap={8}>
+            <FeatureCard
+              icon={LuLayers}
+              title="Structured Learning"
+              description="We break down complex subjects into chapters, references, and sub-chapters. No fluff, just a logical progression of knowledge."
             />
-            <Feature
-              icon={FaBook}
-              title="Organized Notes"
-              text="Keep all your study materials in one structured place."
+            <FeatureCard
+              icon={LuGraduationCap}
+              title="Academic Rigor"
+              description="Our AI is prompt-engineered to act as a Curriculum Designer, referencing standard textbooks and avoiding generic internet summaries."
             />
-            <Feature
-              icon={FaChartLine}
-              title="Track Progress"
-              text="Visual analytics to see how you are improving over time."
-            />
-            <Feature
-              icon={FaUsers}
-              title="Community"
-              text="Connect with other students and share knowledge."
+            <FeatureCard
+              icon={LuZap}
+              title="Active Recall"
+              description="Test your mastery with quizzes generated using Bloom's Taxonomy—moving beyond simple definitions to analysis and problem-solving."
             />
           </SimpleGrid>
         </Box>
-      </Stack>
+
+        <Separator />
+
+        {/* TECH STACK SECTION (Honest representation of the repo) */}
+        <Box>
+          <Heading size="lg" mb={8}>
+            Built with Modern Tech
+          </Heading>
+          <SimpleGrid columns={{ base: 1, md: 2 }} gap={8}>
+            <Box>
+              <Text fontSize="lg" color="gray.600" mb={4}>
+                This application is an open-source educational wrapper designed
+                to harness the reasoning capabilities of Large Language Models
+                (LLMs) for structured pedagogy.
+              </Text>
+              <VStack align="start" gap={3}>
+                <TechItem
+                  label="Frontend"
+                  value="React + TypeScript + Chakra UI"
+                />
+                <TechItem label="Backend" value="FastAPI (Python) + Pydantic" />
+                <TechItem
+                  label="Intelligence"
+                  value="Google Gemini 1.5 Flash"
+                />
+                <TechItem
+                  label="Architecture"
+                  value="Modular Service Pattern"
+                />
+              </VStack>
+            </Box>
+
+            {/* Context/Philosophy */}
+            <Card.Root variant="subtle">
+              <Card.Body>
+                <VStack align="start" gap={4}>
+                  <Icon as={LuBookOpen} size="lg" color="blue.500" />
+                  <Heading size="md">Why this exists?</Heading>
+                  <Text>
+                    Self-learning is hard because the roadmap is often missing.
+                    Search engines give you answers, but not a <i>path</i>. This
+                    tool bridges the gap between raw information and a
+                    structured classroom experience.
+                  </Text>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      window.open(
+                        "https://github.com/nhrot-fc/study-tool",
+                        "_blank",
+                      )
+                    }
+                  >
+                    <LuGithub /> View Source Code
+                  </Button>
+                </VStack>
+              </Card.Body>
+            </Card.Root>
+          </SimpleGrid>
+        </Box>
+      </VStack>
     </Container>
   );
-};
+}
 
-export default Landing;
+// --- SUBCOMPONENTS ---
+
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: IconType;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Card.Root
+      variant="outline"
+      borderColor="transparent"
+      bg="bg.panel"
+      shadow="sm"
+    >
+      <Card.Body>
+        <VStack align="start" gap={4}>
+          <Box p={3} bg="blue.50" color="blue.600" borderRadius="lg">
+            <Icon as={icon} size="lg" />
+          </Box>
+          <Heading size="md">{title}</Heading>
+          <Text color="fg.muted" lineHeight="tall">
+            {description}
+          </Text>
+        </VStack>
+      </Card.Body>
+    </Card.Root>
+  );
+}
+
+function TechItem({ label, value }: { label: string; value: string }) {
+  return (
+    <HStack
+      width="full"
+      justify="space-between"
+      borderBottomWidth="1px"
+      borderColor="gray.100"
+      py={2}
+    >
+      <Text fontWeight="medium" color="gray.500">
+        {label}
+      </Text>
+      <Text fontWeight="semibold">{value}</Text>
+    </HStack>
+  );
+}
+
+function BadgeWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <Box
+      display="inline-flex"
+      alignItems="center"
+      px={3}
+      py={1}
+      borderRadius="full"
+      bg="blue.50"
+      color="blue.700"
+      fontWeight="semibold"
+      fontSize="sm"
+    >
+      {children}
+    </Box>
+  );
+}
