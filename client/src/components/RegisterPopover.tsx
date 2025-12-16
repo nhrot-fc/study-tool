@@ -73,7 +73,12 @@ export const RegisterPopover = () => {
                   placeholder="Create a password"
                 />
               </Stack>
-              <Button type="submit" variant="outline" colorPalette="blue" width="full">
+              <Button
+                type="submit"
+                variant="outline"
+                colorPalette="blue"
+                width="full"
+              >
                 Sign up
               </Button>
             </Stack>
