@@ -62,7 +62,7 @@ export const LoginPopover = () => {
                   placeholder="Enter your password"
                 />
               </Stack>
-              <Button type="submit" colorPalette="teal" width="full">
+              <Button type="submit" variant="outline" colorPalette="blue" width="full">
                 Sign in
               </Button>
             </Stack>
