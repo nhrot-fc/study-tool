@@ -29,12 +29,27 @@ const App = () => {
         <Route path="/" element={<Layout />}>
           <Route index element={user ? <Home /> : <Landing />} />
           <Route path="about" element={<Landing />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="plans/new" element={<PlanCreate />} />
+          <Route
+            path="settings"
+            element={user ? <Settings /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="plans/new"
+            element={user ? <PlanCreate /> : <Navigate to="/" replace />}
+          />
           <Route path="plans/:id" element={<PlanDetail />} />
-          <Route path="plans/:id/edit" element={<PlanEdit />} />
-          <Route path="plans/:id/quizzes" element={<PlanQuizzes />} />
-          <Route path="quizzes/:id" element={<QuizTake />} />
+          <Route
+            path="plans/:id/edit"
+            element={user ? <PlanEdit /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="plans/:id/quizzes"
+            element={user ? <PlanQuizzes /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="quizzes/:id"
+            element={user ? <QuizTake /> : <Navigate to="/" replace />}
+          />
           <Route path="users/:userId" element={<UserPlans />} />
           <Route path="home" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />

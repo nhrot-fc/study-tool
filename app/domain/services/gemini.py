@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 from google import genai
 from google.genai import types
@@ -12,38 +13,18 @@ class GeminiService:
     def __init__(self):
         settings = get_settings()
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
-        self.model = "gemini-2.5-flash"
+        self.model = "gemini-2.5-flash-lite"
 
-    def generate_content(self, prompt: str) -> str | None:
-        """
-        Generates content based on the provided prompt using the Gemini model.
-        """
-        response = self.client.models.generate_content(
-            model=self.model, contents=prompt
-        )
-        return response.text
-
-    def generate_content_with_config(
-        self, prompt: str, temperature: float = 1.0
-    ) -> str | None:
-        """
-        Generates content with specific configuration (e.g., temperature).
-        """
-        response = self.client.models.generate_content(
-            model=self.model,
-            contents=prompt,
-            config=types.GenerateContentConfig(temperature=temperature),
-        )
-        return response.text
-
-    def generate_json(self, prompt: str) -> str | None:
+    def generate_json(self, prompt: str, schema: dict[str, Any]) -> str | None:
         """
         Generates JSON content based on the provided prompt.
         """
         response = self.client.models.generate_content(
             model=self.model,
             contents=prompt,
-            config=types.GenerateContentConfig(response_mime_type="application/json"),
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json", response_json_schema=schema
+            ),
         )
         return response.text
 
@@ -124,22 +105,13 @@ class GeminiService:
         """
 
         prompt = f"{system_instruction}\n\n{task_instruction}\n\n{constraints}"
-        response_text = self.generate_json(prompt)
+        response_text = self.generate_json(prompt, schema)
 
         if not response_text:
             return None
 
         try:
-            cleaned_text = response_text.strip()
-            if cleaned_text.startswith("```json"):
-                cleaned_text = cleaned_text[7:]
-            elif cleaned_text.startswith("```"):
-                cleaned_text = cleaned_text[3:]
-            if cleaned_text.endswith("```"):
-                cleaned_text = cleaned_text[:-3]
-
-            data = json.loads(cleaned_text)
-            return StudyPlanProposal.model_validate(data)
+            return StudyPlanProposal.model_validate_json(response_text)
         except Exception as e:
             print(f"Error parsing Gemini response: {e}")
             return None
@@ -226,21 +198,13 @@ class GeminiService:
 
         prompt = f"{system_instruction}\n\n{task_instruction}\n\n{constraints}"
 
-        response_text = self.generate_json(prompt)
+        response_text = self.generate_json(prompt, schema)
+
         if not response_text:
             return None
 
         try:
-            cleaned_text = response_text.strip()
-            if cleaned_text.startswith("```json"):
-                cleaned_text = cleaned_text[7:]
-            elif cleaned_text.startswith("```"):
-                cleaned_text = cleaned_text[3:]
-            if cleaned_text.endswith("```"):
-                cleaned_text = cleaned_text[:-3]
-
-            data = json.loads(cleaned_text)
-            return QuizProposal.model_validate(data)
+            return QuizProposal.model_validate_json(response_text)
         except Exception as e:
             print(f"Error parsing Gemini response: {e}")
             return None

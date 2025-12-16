@@ -37,9 +37,9 @@ export default function Landing() {
             </Text>
           </Heading>
           <Text fontSize="xl" color="gray.500" lineHeight="tall">
-            Stop scrolling through endless tutorials. Use AI LLMs to
-            structure chaos into clear, linear study plans inspired by curricula
-            from top institutions.
+            Stop scrolling through endless tutorials. Use AI LLMs to structure
+            chaos into clear, linear study plans inspired by curricula from top
+            institutions.
           </Text>
         </VStack>
 
