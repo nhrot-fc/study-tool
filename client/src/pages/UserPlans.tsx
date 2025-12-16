@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams, Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   Box,
   Heading,
@@ -11,121 +12,211 @@ import {
   Spinner,
   Center,
   HStack,
+  Icon,
   Badge,
+  Avatar,
+  Separator,
+  VStack,
 } from "@chakra-ui/react";
-import { useParams, Link as RouterLink } from "react-router-dom";
 import { apiClient } from "../lib/api";
 import { type StudyPlanSummary } from "../lib/types";
-import { LuCalendar } from "react-icons/lu";
+import {
+  LuCalendar,
+  LuBookOpen,
+  LuGitFork,
+  LuArrowRight,
+  LuFiles,
+} from "react-icons/lu";
 
 const UserPlans = () => {
   const { userId } = useParams<{ userId: string }>();
+  const navigate = useNavigate();
   const [plans, setPlans] = useState<StudyPlanSummary[]>([]);
+  const [profile, setProfile] = useState<{
+    username: string;
+    full_name?: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [username, setUsername] = useState<string>("");
 
   useEffect(() => {
     if (userId) {
+      setLoading(true);
+      // Fetch both user profile and their plans
       Promise.all([apiClient.getStudyPlans(userId), apiClient.getUser(userId)])
         .then(([plansData, userData]) => {
           setPlans(plansData);
-          setUsername(userData.username);
+          setProfile(userData);
         })
         .catch(console.error)
         .finally(() => setLoading(false));
     }
   }, [userId]);
 
-  return (
-    <Container maxW="6xl" py={10}>
-      <Stack gap={8}>
-        <HStack justify="space-between" align="center">
-          <Heading size="2xl">
-            {username ? `${username}'s Study Plans` : "User Study Plans"}
-          </Heading>
-        </HStack>
+  if (loading) {
+    return (
+      <Center h="80vh">
+        <Spinner size="xl" color="blue.500" />
+      </Center>
+    );
+  }
 
-        {loading ? (
-          <Center py={20}>
-            <Spinner size="xl" />
-          </Center>
-        ) : plans.length === 0 ? (
-          <Box
-            textAlign="center"
-            py={20}
-            borderWidth="1px"
-            borderStyle="dashed"
-            borderRadius="lg"
-            borderColor="gray.300"
-            _dark={{ borderColor: "gray.700" }}
-          >
-            <Heading size="md" mb={2}>
-              No study plans found
-            </Heading>
-            <Text color="gray.500">
-              This user hasn't created any study plans yet.
-            </Text>
-          </Box>
+  return (
+    <Container maxW="container.lg" py={12}>
+      <Stack gap={10}>
+        {/* PROFILE HEADER */}
+        {profile && (
+          <HStack align="center" gap={6} wrap="wrap">
+            <Avatar.Root size="2xl" colorPalette="blue">
+              <Avatar.Fallback name={profile.full_name || profile.username} />
+              <Avatar.Image />
+            </Avatar.Root>
+            <VStack align="start" gap={1}>
+              <Heading size="3xl" letterSpacing="tight">
+                {profile.username}
+              </Heading>
+              <Text color="fg.muted" fontSize="lg">
+                Curator of <strong>{plans.length}</strong> study plans
+              </Text>
+            </VStack>
+          </HStack>
+        )}
+
+        <Separator />
+
+        {/* CONTENT GRID */}
+        {plans.length === 0 ? (
+          <EmptyState username={profile?.username} />
         ) : (
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
-            {plans.map((plan) => (
-              <Card.Root
-                key={plan.id}
-                variant="elevated"
-                _hover={{
-                  transform: "translateY(-2px)",
-                  transition: "all 0.2s",
-                }}
+          <Box>
+            <HStack mb={6} gap={2} color="fg.muted">
+              <Icon as={LuFiles} />
+              <Text
+                fontWeight="medium"
+                textTransform="uppercase"
+                fontSize="xs"
+                letterSpacing="wider"
               >
-                <Card.Body>
-                  <Stack gap={3}>
-                    <RouterLink to={`/plans/${plan.id}`}>
-                      <Heading
-                        size="md"
-                        truncate
-                        _hover={{ color: "teal.500" }}
-                      >
-                        {plan.title}
-                      </Heading>
-                    </RouterLink>
-                    <Text
-                      color="gray.600"
-                      _dark={{ color: "gray.400" }}
-                      lineClamp={2}
-                      fontSize="sm"
-                    >
-                      {plan.description}
-                    </Text>
-                    <HStack color="gray.500" fontSize="xs" mt={2}>
-                      <LuCalendar />
-                      <Text>
-                        {new Date(plan.created_at).toLocaleDateString()}
-                      </Text>
-                      {plan.forked_from_id && (
-                        <Badge colorPalette="purple" variant="subtle">
-                          Forked
-                        </Badge>
-                      )}
-                    </HStack>
-                  </Stack>
-                </Card.Body>
-                <Card.Footer pt={0}>
-                  <RouterLink
-                    to={`/plans/${plan.id}`}
-                    style={{ width: "100%" }}
-                  >
-                    <Button variant="ghost" size="sm" width="full">
-                      View Plan
-                    </Button>
-                  </RouterLink>
-                </Card.Footer>
-              </Card.Root>
-            ))}
-          </SimpleGrid>
+                Public Portfolio
+              </Text>
+            </HStack>
+
+            <SimpleGrid columns={{ base: 1, md: 2 }} gap={6}>
+              {plans.map((plan) => (
+                <PublicPlanCard
+                  key={plan.id}
+                  plan={plan}
+                  navigation={() => navigate(`/plans/${plan.id}`)}
+                />
+              ))}
+            </SimpleGrid>
+          </Box>
         )}
       </Stack>
     </Container>
   );
 };
+
+// --- SUB-COMPONENTS ---
+
+function PublicPlanCard({
+  plan,
+  navigation,
+}: {
+  plan: StudyPlanSummary;
+  navigation: () => void;
+}) {
+  return (
+    <Card.Root
+      variant="outline"
+      borderColor="border.subtle"
+      transition="all 0.2s"
+      _hover={{
+        borderColor: "blue.300",
+        shadow: "sm",
+        transform: "translateY(-2px)",
+      }}
+    >
+      <Card.Body display="flex" flexDirection="column" gap={4} h="full">
+        {/* Header: Icon + Fork Badge */}
+        <HStack justify="space-between" align="start">
+          <Box
+            p={2}
+            bg="bg.panel"
+            borderRadius="md"
+            color="fg.subtle"
+            border="1px solid"
+            borderColor="border.subtle"
+          >
+            <Icon as={LuBookOpen} size="md" />
+          </Box>
+          {plan.forked_from_id && (
+            <Badge variant="surface" colorPalette="purple" gap={1}>
+              <LuGitFork /> Forked
+            </Badge>
+          )}
+        </HStack>
+
+        {/* Content */}
+        <Stack gap={2} flex="1">
+          <RouterLink to={`/plans/${plan.id}`}>
+            <Heading
+              size="md"
+              fontWeight="bold"
+              lineClamp={2}
+              _hover={{ textDecoration: "underline" }}
+            >
+              {plan.title}
+            </Heading>
+          </RouterLink>
+          <Text color="fg.muted" fontSize="sm" lineClamp={3}>
+            {plan.description || "No description provided."}
+          </Text>
+        </Stack>
+
+        {/* Footer: Date + Action */}
+        <HStack
+          justify="space-between"
+          color="fg.muted"
+          fontSize="xs"
+          pt={4}
+          borderTopWidth="1px"
+          borderColor="border.subtle"
+        >
+          <HStack>
+            <LuCalendar />
+            <Text>{new Date(plan.created_at).toLocaleDateString()}</Text>
+          </HStack>
+
+          <Button
+            onClick={navigation}
+            variant="ghost"
+            size="xs"
+            colorPalette="blue"
+          >
+            View Syllabus <LuArrowRight />
+          </Button>
+        </HStack>
+      </Card.Body>
+    </Card.Root>
+  );
+}
+
+function EmptyState({ username }: { username?: string }) {
+  return (
+    <Center py={16}>
+      <VStack gap={4} textAlign="center" color="fg.muted">
+        <Icon as={LuFiles} size="2xl" opacity={0.3} />
+        <Heading size="md" color="fg.DEFAULT">
+          No public plans
+        </Heading>
+        <Text maxW="sm">
+          {username
+            ? `${username} hasn't published any study plans yet.`
+            : "No plans found for this user."}
+        </Text>
+      </VStack>
+    </Center>
+  );
+}
 
 export default UserPlans;
