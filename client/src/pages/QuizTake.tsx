@@ -161,8 +161,7 @@ export default function QuizTake() {
     <Box minH="100vh" bg="bg.canvas">
       {/* --- STICKY HEADER (Active Mode Only) --- */}
       {!isReviewMode && (
-        <Box
-        >
+        <Box>
           <Container maxW="container.md" py={3}>
             <VStack gap={2} align="stretch">
               <HStack justify="space-between">
