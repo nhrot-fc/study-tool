@@ -110,7 +110,7 @@ export default function PlanCreate() {
             key={formKey}
             initialData={proposal}
             onSubmit={handleSave}
-            submitLabel="Create Plan"
+            submitLabel="Save"
             // We removed the headerActions Popover and moved it to the sidebar
           />
         </GridItem>
