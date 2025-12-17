@@ -39,8 +39,8 @@ export interface AuthToken {
 
 export interface ResourceCreate {
   title: string;
-  url: string;
   type: ResourceType;
+  url?: string;
   description?: string | null;
   duration_minutes?: number | null;
 }

@@ -7,8 +7,8 @@ from app.domain.enums import ResourceType
 
 class ResourceBase(BaseModel):
     title: str
-    url: str
     type: ResourceType
+    url: str | None = None
     description: str | None = None
     duration_minutes: int | None = None
 

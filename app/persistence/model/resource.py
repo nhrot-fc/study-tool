@@ -16,8 +16,8 @@ class Resource(BaseEntity, table=True):
     __tablename__ = "resource"  # type: ignore
 
     title: str = Field(index=True)
-    url: str
     type: ResourceType
+    url: str | None = None
     description: str | None = None
     duration_minutes: int | None = None
 

@@ -58,7 +58,7 @@ export const ResourceItem = ({ resource, onToggle }: ResourceItemProps) => {
       </Box>
       <VStack align="start" gap={0} flex={1}>
         <Link
-          href={resource.url}
+          href={resource.url ?? "#"}
           target="_blank"
           rel="noopener noreferrer"
           fontWeight="medium"
@@ -70,7 +70,9 @@ export const ResourceItem = ({ resource, onToggle }: ResourceItemProps) => {
           color={resource.status === "completed" ? "gray.500" : undefined}
         >
           {resource.title}{" "}
-          <Icon as={LuExternalLink} boxSize={3} display="inline" />
+          {resource.url && (
+            <Icon as={LuExternalLink} boxSize={3} display="inline" />
+          )}
         </Link>
         {resource.description && (
           <Text fontSize="xs" color="gray.500" lineClamp={1}>
