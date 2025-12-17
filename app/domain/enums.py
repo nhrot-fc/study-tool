@@ -15,3 +15,4 @@ class ResourceType(StrEnum):
     BLOG = "blog"
     DOCUMENTATION = "documentation"
     REPOSITORY = "repository"
+    PAPER = "paper"

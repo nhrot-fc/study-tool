@@ -7,6 +7,7 @@ import {
   Text,
   Box,
   Heading,
+  HStack,
 } from "@chakra-ui/react";
 import { Popover } from "../ui/popover";
 import { apiClient } from "../../lib/api";
@@ -67,37 +68,37 @@ export const QuizGeneratePopover = ({
           </Button>
         )}
       </Popover.Trigger>
-      <Popover.Content width="320px">
+      <Popover.Content width="275px">
         <Popover.Arrow />
         <Popover.Body>
           <VStack gap={4} align="stretch">
             <Heading size="sm">Generate Quiz</Heading>
-            <Box>
+            <HStack justify="space-between">
               <Text mb={1} fontSize="sm" fontWeight="medium">
                 Number of Questions
               </Text>
               <Input
-                size="sm"
+                width="80px"
                 type="number"
                 value={numQuestions}
                 onChange={(e) => setNumQuestions(parseInt(e.target.value))}
                 min={1}
                 max={20}
               />
-            </Box>
-            <Box>
+            </HStack>
+            <HStack justify="space-between">
               <Text mb={1} fontSize="sm" fontWeight="medium">
                 Difficulty (1-10)
               </Text>
               <Input
-                size="sm"
+                width="80px"
                 type="number"
                 value={difficulty}
                 onChange={(e) => setDifficulty(parseInt(e.target.value))}
                 min={1}
                 max={10}
               />
-            </Box>
+            </HStack>
             <Box>
               <Text mb={1} fontSize="sm" fontWeight="medium">
                 Focus / Description (Optional)
@@ -112,11 +113,12 @@ export const QuizGeneratePopover = ({
             </Box>
             <Button
               size="sm"
-              colorPalette="blue"
+              variant="outline"
+              colorPalette="purple"
               onClick={handleGenerate}
               loading={loading}
             >
-              Generate & Start
+              Start
             </Button>
           </VStack>
         </Popover.Body>

@@ -57,23 +57,35 @@ export const ResourceItem = ({ resource, onToggle }: ResourceItemProps) => {
         <ResourceIcon type={resource.type} />
       </Box>
       <VStack align="start" gap={0} flex={1}>
-        <Link
-          href={resource.url ?? "#"}
-          target="_blank"
-          rel="noopener noreferrer"
-          fontWeight="medium"
-          fontSize="sm"
-          lineHeight="short"
-          textDecoration={
-            resource.status === "completed" ? "line-through" : "none"
-          }
-          color={resource.status === "completed" ? "gray.500" : undefined}
-        >
-          {resource.title}{" "}
-          {resource.url && (
+        {resource.url ? (
+          <Link
+            href={resource.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            fontWeight="medium"
+            fontSize="sm"
+            lineHeight="short"
+            textDecoration={
+              resource.status === "completed" ? "line-through" : "none"
+            }
+            color={resource.status === "completed" ? "gray.500" : undefined}
+          >
+            {resource.title}{" "}
             <Icon as={LuExternalLink} boxSize={3} display="inline" />
-          )}
-        </Link>
+          </Link>
+        ) : (
+          <Text
+            fontWeight="medium"
+            fontSize="sm"
+            lineHeight="short"
+            textDecoration={
+              resource.status === "completed" ? "line-through" : "none"
+            }
+            color={resource.status === "completed" ? "gray.500" : undefined}
+          >
+            {resource.title}
+          </Text>
+        )}
         {resource.description && (
           <Text fontSize="xs" color="gray.500" lineClamp={1}>
             {resource.description}

@@ -41,7 +41,12 @@ class ProgressService:
             StudyPlanProgress(user_id=user_id, study_plan_id=study_plan_id)
         )
 
-        await self._create_section_progress_tree(user_id, sp_progress.id, plan.sections)
+        sections, resources = await self._create_section_progress_tree(
+            user_id, sp_progress.id, plan.sections
+        )
+
+        await self.progress_repo.section.create_batch(sections)
+        await self.progress_repo.resource.create_batch(resources)
 
         # Reload with relationships
         reloaded = await self.progress_repo.get_study_plan_progress(
@@ -53,29 +58,36 @@ class ProgressService:
 
     async def _create_section_progress_tree(
         self, user_id: UUID, sp_progress_id: UUID, sections: list[Section]
-    ) -> None:
+    ) -> tuple[list[SectionProgress], list[ResourceProgress]]:
+        to_create_sections = []
+        to_create_resources = []
         for section in sections:
-            sec_progress = await self.progress_repo.section.create(
-                SectionProgress(
-                    user_id=user_id,
-                    section_id=section.id,
-                    study_plan_progress_id=sp_progress_id,
-                )
+            sec_progress = SectionProgress(
+                user_id=user_id,
+                section_id=section.id,
+                study_plan_progress_id=sp_progress_id,
             )
+            to_create_sections.append(sec_progress)
 
             for resource in section.resources:
-                await self.progress_repo.resource.create(
-                    ResourceProgress(
-                        user_id=user_id,
-                        resource_id=resource.id,
-                        section_progress_id=sec_progress.id,
-                    )
+                resource_progress = ResourceProgress(
+                    user_id=user_id,
+                    resource_id=resource.id,
+                    section_progress_id=sec_progress.id,
                 )
+                to_create_resources.append(resource_progress)
 
             if section.children:
-                await self._create_section_progress_tree(
+                (
+                    children_sections,
+                    children_resources,
+                ) = await self._create_section_progress_tree(
                     user_id, sp_progress_id, section.children
                 )
+                to_create_sections.extend(children_sections)
+                to_create_resources.extend(children_resources)
+
+        return to_create_sections, to_create_resources
 
     async def update_resource_status(
         self,

@@ -15,6 +15,7 @@ import {
   Heading,
   createListCollection,
   Stack,
+  Portal,
 } from "@chakra-ui/react";
 import {
   LuPlus,
@@ -52,6 +53,7 @@ interface StudyPlanFormProps {
 const RESOURCE_TYPES: { value: ResourceType; label: string; icon: IconType }[] =
   [
     { value: "video", label: "Video", icon: LuVideo },
+    { value: "paper", label: "Paper", icon: LuFileText },
     { value: "article", label: "Article", icon: LuFileText },
     { value: "book", label: "Book", icon: LuBook },
     { value: "blog", label: "Blog", icon: LuFileText },
@@ -79,7 +81,7 @@ const ResourceEditor = ({
           <HStack gap={2}>
             <Select.Root
               size="sm"
-              width="140px"
+              maxWidth="150px"
               collection={resourceTypeCollection}
               value={[resource.type]}
               onValueChange={(e) =>
@@ -89,13 +91,17 @@ const ResourceEditor = ({
               <Select.Trigger>
                 <Select.ValueText placeholder="Type" />
               </Select.Trigger>
-              <Select.Content>
-                {resourceTypeCollection.items.map((type) => (
-                  <Select.Item key={type.value} item={type}>
-                    {type.label}
-                  </Select.Item>
-                ))}
-              </Select.Content>
+              <Portal>
+                <Select.Positioner>
+                  <Select.Content>
+                    {resourceTypeCollection.items.map((type) => (
+                      <Select.Item key={type.value} item={type}>
+                        {type.label}
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Portal>
             </Select.Root>
             <Input
               size="sm"
@@ -116,7 +122,7 @@ const ResourceEditor = ({
           <Input
             size="sm"
             placeholder="URL"
-            value={resource.url}
+            value={resource.url || ""}
             onChange={(e) => onChange({ ...resource, url: e.target.value })}
           />
           <Textarea

@@ -1,10 +1,12 @@
 import json
+from logging import getLogger
 from typing import Any
 
 from google import genai
 from google.genai import types
 
 from app.core.config import get_settings
+from app.domain.enums import ResourceType
 from app.domain.schemas.quiz import QuizProposal
 from app.domain.schemas.study_plan import StudyPlanProposal, StudyPlanReadDetail
 
@@ -14,11 +16,11 @@ class GeminiService:
         settings = get_settings()
         self.client = genai.Client(api_key=settings.GEMINI_API_KEY)
         self.model = "gemini-2.5-flash"
+        self.logger = getLogger("app.domain.services.gemini.GeminiService")
 
-    def generate_json(self, prompt: str, schema: dict[str, Any]) -> str | None:
-        """
-        Generates JSON content based on the provided prompt.
-        """
+    def generate_json(
+        self, prompt: str, schema: dict[str, Any] | None = None
+    ) -> str | None:
         response = self.client.models.generate_content(
             model=self.model,
             contents=prompt,
@@ -39,18 +41,47 @@ class GeminiService:
         settings = get_settings()
         max_depth = settings.STUDY_PLAN_MAX_DEPTH
 
-        system_instruction = """
-        You are a prestigious Academic Curriculum Designer
-        specializing in higher education.
-        Your task is to create structured, university-level study plans (syllabi).
+        system_instruction = f"""
+        ### ROLE
+        Act as a High-Density Knowledge Retrieval Engine.
+        Your goal is to construct technical study paths based on
+        strict curation standards.
 
-        **Core Principles:**
-        1. **Academic Rigor:** Base the structure and content on curricula
-        from institutions (MIT, Oxford, Cambridge, ITMO, USP, Stanford).
-        2. **Conciseness:** Be extremely brevity-oriented. Descriptions must be short,
-        direct, and summary-style (like a course catalog).
-        3. **Referencing:** Prioritize standard academic textbooks, papers,
-        or recognized lectures in your references.
+        ### CORE DIRECTIVES
+        1. **ZERO FILLER:** Do not use phrases like "Advanced," "Rigorous"
+        2. **STYLE:** Telegraphic, objective, dry.
+        Mimic an advanced search index or a curated bibliography.
+        3. **DEPTH:** Focus on "How things work" (Internals)
+        and "Real-world scale" (Case Studies).
+
+        ### RESOURCE HIERARCHY (STRICT PRIORITY)
+        You must aggregate resources from these three tiers:
+        * **TIER 1 (Foundations):** Standard Academic Textbooks,
+        Papers, University Curricula (MIT, Stanford, CMU, ETH Zurich).
+        * **TIER 2 (Applied Engineering):** Official Engineering Blogs
+        (Meta, Discord, Netflix, Uber, Cloudflare), Post-Mortems, RFCs, and Whitepapers.
+        * **TIER 3 (Expertise):** Content from recognized engineers
+        (e.g., Martin Fowler, reputable personal blogs) and
+        high-quality documentation/platforms (mdn, roadmap.sh).
+
+        ### OUTPUT FORMAT
+        For every topic requested, strictly follow this structure:
+
+        ## [MODULE NAME]
+        **Core Concept:** [1-sentence definition, technical precision only]
+        **Curriculum:**
+        * [Subtopic 1]: [Brief scope]
+        * [Subtopic 2]: [Brief scope]
+
+        **Retrieval Index (Resources):**
+        * [TYPE: book] :: [Title/University] - [Specific Chapters/Lectures]
+        * [TYPE: blog] :: [Company/Blog Title] - [Key takeaway e.g.,
+        "How Discord scaled Elixir"]
+        * [TYPE: paper] :: [Title/Author]
+        ## Available Resource Types: {list(ResourceType)}
+
+        ### NEGATIVE CONSTRAINTS
+        * NO fluff descriptions ("This is a very important topic...").
         """
 
         if ignore_base_prompt:
@@ -105,7 +136,7 @@ class GeminiService:
         """
 
         prompt = f"{system_instruction}\n\n{task_instruction}\n\n{constraints}"
-        response_text = self.generate_json(prompt, schema)
+        response_text = self.generate_json(prompt)
 
         if not response_text:
             return None
@@ -113,7 +144,8 @@ class GeminiService:
         try:
             return StudyPlanProposal.model_validate_json(response_text)
         except Exception as e:
-            print(f"Error parsing Gemini response: {e}")
+            self.logger.error(f"Error parsing Gemini response: {e}")
+            self.logger.error(f"Response Text: {response_text}")
             return None
 
     def generate_quiz_proposal(
@@ -183,6 +215,7 @@ class GeminiService:
         ## Constraints & Strict Formatting
         1. **Output**: Return a single valid JSON object matching the schema.
         2. **Question Structure**:
+            - **Format**: Use LaTeX for mathematical expressions and snippets for code.
             - **Stem**: The question text must be self-contained. Avoid "What about X?".
             Instead use "Given condition Y, what is the value of X?"
             - **Options**: Provide exactly 5 options per question.
@@ -206,5 +239,6 @@ class GeminiService:
         try:
             return QuizProposal.model_validate_json(response_text)
         except Exception as e:
-            print(f"Error parsing Gemini response: {e}")
+            self.logger.error(f"Error parsing Gemini response: {e}")
+            self.logger.error(f"Response Text: {response_text}")
             return None

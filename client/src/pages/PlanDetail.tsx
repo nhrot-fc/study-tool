@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   Box,
   Container,
@@ -35,6 +35,8 @@ import { MdEdit } from "react-icons/md";
 import { QuizGeneratePopover } from "../components/quizzes/QuizGeneratePopover";
 import { apiClient } from "../lib/api";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import type { StudyPlanWithProgress } from "@/lib/types";
 
 export default function PlanDetail() {
   const { id } = useParams<{ id: string }>();
@@ -43,6 +45,20 @@ export default function PlanDetail() {
   const { plan, loading, error, forkPlan, toggleResourceStatus } = useStudyPlan(
     id || "",
   );
+
+  const [forked, setForked] = useState<StudyPlanWithProgress | null>(null);
+  useEffect(() => {
+    const fetchForked = async () => {
+      if (!plan || !plan.forked_from_id) return;
+      try {
+        const fetched = await apiClient.getStudyPlan(plan.forked_from_id);
+        setForked(fetched);
+      } catch (err) {
+        console.error("Failed to fetch forked plan", err);
+      }
+    }
+    fetchForked();
+  }, [plan?.forked_from_id]);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -108,13 +124,13 @@ export default function PlanDetail() {
           <VStack align="stretch" gap={8}>
             {/* Header Info */}
             <Box>
-              <HStack mb={4} gap={3}>
-                {plan.forked_from_id && (
-                  <Badge variant="outline" colorPalette="purple">
-                    Forked
+              {plan.forked_from_id && (
+                 <Link to={`/plans/${plan.forked_from_id}`}>
+                  <Badge mb={4} variant="outline" colorPalette="purple">
+                    Forked from: {forked ? forked.title : plan.forked_from_id}
                   </Badge>
-                )}
-              </HStack>
+                </Link>
+              )}
               <Heading
                 size={{ base: "2xl", md: "3xl", lg: "4xl" }}
                 letterSpacing="tight"
@@ -160,98 +176,105 @@ export default function PlanDetail() {
         {/* 3. RIGHT COLUMN: SIDEBAR DASHBOARD */}
         <GridItem position={{ lg: "sticky" }} top={24}>
           <VStack align="stretch" gap={6}>
-            {/* A. Progress & Assessment Card */}
-            <Card.Root variant="outline">
-              <Card.Body gap={5}>
-                <VStack align="stretch" gap={2}>
-                  <HStack justify="space-between">
-                    <Text fontWeight="semibold">Course Progress</Text>
-                    <Text fontWeight="bold" color="blue.600">
-                      {Math.round(progress)}%
-                    </Text>
-                  </HStack>
-                  <Progress.Root value={progress} size="md" colorPalette="blue">
-                    <Progress.Track>
-                      <Progress.Range />
-                    </Progress.Track>
-                  </Progress.Root>
-                </VStack>
+            {user && (
+              <>
+                {/* A. Progress & Assessment Card */}
+                <Card.Root variant="outline">
+                  <Card.Body gap={5}>
+                    <VStack align="stretch" gap={2}>
+                      <HStack justify="space-between">
+                        <Text fontWeight="semibold">Course Progress</Text>
+                        <Text fontWeight="bold" color="blue.600">
+                          {Math.round(progress)}%
+                        </Text>
+                      </HStack>
+                      <Progress.Root
+                        value={progress}
+                        size="md"
+                        colorPalette="blue"
+                      >
+                        <Progress.Track>
+                          <Progress.Range />
+                        </Progress.Track>
+                      </Progress.Root>
+                    </VStack>
 
-                <Separator borderColor="border.subtle" />
+                    <Separator borderColor="border.subtle" />
 
-                <VStack align="stretch" gap={3}>
-                  <QuizGeneratePopover
-                    planId={id || ""}
-                    studyPlan={plan}
-                    trigger={
+                    <VStack align="stretch" gap={3}>
+                      <QuizGeneratePopover
+                        planId={id || ""}
+                        studyPlan={plan}
+                        trigger={
+                          <Button
+                            variant="outline"
+                            colorPalette="blue"
+                            width="full"
+                            size="lg"
+                          >
+                            <LuBrainCircuit /> Take Quiz
+                          </Button>
+                        }
+                      />
                       <Button
                         variant="outline"
-                        colorPalette="blue"
+                        colorPalette="green"
                         width="full"
-                        size="lg"
+                        onClick={() => navigate(`/plans/${id}/quizzes`)}
                       >
-                        <LuBrainCircuit /> Take Quiz
+                        <LuList /> View Past Quizzes
                       </Button>
-                    }
-                  />
-                  <Button
-                    variant="outline"
-                    colorPalette="green"
-                    width="full"
-                    onClick={() => navigate(`/plans/${id}/quizzes`)}
-                  >
-                    <LuList /> View Past Quizzes
-                  </Button>
-                </VStack>
-              </Card.Body>
-            </Card.Root>
+                    </VStack>
+                  </Card.Body>
+                </Card.Root>
+                {/* B. Management Card */}
+                <Card.Root variant="subtle">
+                  <Card.Body>
+                    <HStack mb={4} color="fg.muted">
+                      <LuSettings />
+                      <Text
+                        fontSize="xs"
+                        fontWeight="bold"
+                        textTransform="uppercase"
+                      >
+                        Manage
+                      </Text>
+                    </HStack>
 
-            {/* B. Management Actions */}
-            <Card.Root variant="subtle">
-              <Card.Body>
-                <HStack mb={4} color="fg.muted">
-                  <LuSettings />
-                  <Text
-                    fontSize="xs"
-                    fontWeight="bold"
-                    textTransform="uppercase"
-                  >
-                    Manage
-                  </Text>
-                </HStack>
-
-                <VStack align="stretch" gap={1}>
-                  {isOwner && (
-                    <>
+                    <VStack align="stretch" gap={1}>
+                      {isOwner && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            justifyContent="start"
+                            onClick={() => navigate(`/plans/${id}/edit`)}
+                          >
+                            <MdEdit /> Edit Syllabus
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            colorPalette="red"
+                            justifyContent="start"
+                            onClick={handleDelete}
+                            _hover={{ bg: "red.50", color: "red.600" }}
+                          >
+                            <LuTrash2 /> Delete Plan
+                          </Button>
+                          <Separator my={2} />
+                        </>
+                      )}
                       <Button
                         variant="ghost"
                         justifyContent="start"
-                        onClick={() => navigate(`/plans/${id}/edit`)}
+                        onClick={forkPlan}
                       >
-                        <MdEdit /> Edit Syllabus
+                        <LuCopy /> Fork this Plan
                       </Button>
-                      <Button
-                        variant="ghost"
-                        colorPalette="red"
-                        justifyContent="start"
-                        onClick={handleDelete}
-                        _hover={{ bg: "red.50", color: "red.600" }}
-                      >
-                        <LuTrash2 /> Delete Plan
-                      </Button>
-                      <Separator my={2} />
-                    </>
-                  )}
-                  <Button
-                    variant="ghost"
-                    justifyContent="start"
-                    onClick={forkPlan}
-                  >
-                    <LuCopy /> Fork this Plan
-                  </Button>
-                </VStack>
-              </Card.Body>
-            </Card.Root>
+                    </VStack>
+                  </Card.Body>
+                </Card.Root>
+              </>
+            )}
 
             {/* C. General Resources */}
             {plan.resources && plan.resources.length > 0 && (

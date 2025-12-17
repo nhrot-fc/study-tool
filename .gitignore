@@ -13,3 +13,10 @@ wheels/
 # database files
 *.sqlite3
 *.db
+
+# IDE files
+.vscode/
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage

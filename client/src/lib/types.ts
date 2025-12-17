@@ -2,6 +2,7 @@
 
 export type ResourceType =
   | "video"
+  | "paper"
   | "article"
   | "book"
   | "blog"

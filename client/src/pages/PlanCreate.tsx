@@ -213,7 +213,7 @@ export default function PlanCreate() {
                     size="sm"
                     colorPalette="purple"
                   >
-                    <Text fontSize="sm">Advanced: Ignore base prompt</Text>
+                    <Text fontSize="sm">Ignore base prompt</Text>
                   </Switch>
                 </VStack>
               </Box>

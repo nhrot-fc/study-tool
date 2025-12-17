@@ -20,6 +20,11 @@ class BaseRepository[ModelType: BaseEntity]:
         await self.session.refresh(obj_in)
         return obj_in
 
+    async def create_batch(self, objs_in: list[ModelType]) -> list[ModelType]:
+        self.session.add_all(objs_in)
+        await self.session.commit()
+        return objs_in
+
     async def get_by_id(self, id: Any) -> ModelType | None:
         return await self.session.get(self.model, id)
 
